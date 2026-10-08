@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+*.log
+.env
+.env.*
+!.env.example
+.vercel/
+node_modules/
+web/config.js
+runner/config.json
+*.pem
+*.p12
+.DS_Store
+
+# Subscription gateway local, NEVER COMMIT secrets
+/gateway/config.json
+/gateway/.secrets/
+
+# New private worker settings
+runner/agent-worker.json

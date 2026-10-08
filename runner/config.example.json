@@ -1,0 +1,11 @@
+{
+  "supabase_url": "https://SEU-PROJETO.supabase.co",
+  "node_id": "COLE-AQUI-ID-DO-NOTEBOOK",
+  "node_secret": "COLE-AQUI-SEGREDO-DO-NOTEBOOK",
+  "projects": {
+    "COLE-ID-DO-PROJETO-CADASTRADO": "C:\\projetos\\meu-repositorio"
+  },
+  "enable_codex": false,
+  "codex_timeout_seconds": 600,
+  "poll_seconds": 20
+}

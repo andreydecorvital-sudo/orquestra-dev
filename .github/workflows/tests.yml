@@ -1,0 +1,28 @@
+name: Orquestra quality gate
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Python syntax
+        run: python3 -m compileall -q gateway runner orchestration
+      - name: Browser JS syntax
+        run: node --check web-live/app.js
+      - name: Block tracked secrets
+        run: |
+          test ! -f runner/agent-worker.json
+          test ! -f gateway/config.json
+          test ! -f runner/config.json
+          test ! -f .env

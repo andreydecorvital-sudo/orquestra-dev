@@ -1,0 +1,2 @@
+[functions.orq-worker]
+verify_jwt = false
