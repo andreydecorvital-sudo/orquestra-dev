@@ -1,8 +1,8 @@
 # Connection gates — pending external user approvals
 
-- **GitHub**: a connected integration can update existing repositories but cannot create repositories. The repository exists but is public. Switch visibility to private if storing company-specific configurations.
+- **GitHub**: `andreydecorvital-sudo/orquestra-dev` is now populated (44 files) with a passing CI run, and is linked to Vercel. It is PUBLIC. Switch visibility to private before including company-specific details.
 - **Supabase**: only organization visible is `andreydecorvital-sudo's Org` (ID privado, consultável na conta Supabase), but creating a project requires explicit user selection of organization and confirmation of quoted cost. No new project or migration was applied.
-- **Vercel**: an existing independent project `orquestra-dev` is online in `vitaldecor` (ID consultável na conta Vercel). Link it to the new private GitHub repository (root `web-live`) once created; the current online site is NOT the new v1.0. Until a dedicated Supabase project exists, a live login cannot work.
+- **Vercel**: GitHub-linked project `orquestra-dev-app` (root `web-live`) is deployed to `https://orquestra-dev-app.vercel.app/` and returns HTTP 200. The previous `orquestra-dev.vercel.app` project remains untouched. No Supabase login can work until the dedicated database is provisioned.
 - **GPT and Claude**: user must log in to their CLIs in the runner environment; an assistant cannot transfer authentication sessions or create access tokens from the chat.
 - **24/7**: Vercel hosting and database availability do not run LLM jobs themselves. A persistent authenticated worker/remote runner must remain alive. Choosing paid runtime resources requires cost consent.
 
