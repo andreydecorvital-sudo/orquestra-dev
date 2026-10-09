@@ -143,7 +143,7 @@ $('nodeForm').addEventListener('submit',async event=>{
  const projectId=String(fd.get('project_id')||'');const localPath=String(fd.get('local_path')||'').trim();
  if(!name||name.length>90)return;
  if(!data.projects.some(p=>p.id===projectId)){message('nodeMsg','Cadastre e selecione primeiro um projeto autorizado.');return}
- if(!/^[a-z]:\\\\[^\r\n]{3,255}$/i.test(localPath)){message('nodeMsg','Informe um caminho absoluto válido no Windows, como C:\\\\Orquestra\\\\Repos\\\\orquestra-dev');return}
+ if(!/^[a-z]:\\[^\r\n]{3,255}$/i.test(localPath)){message('nodeMsg','Informe um caminho absoluto válido no Windows, como C:\\Orquestra\\Repos\\orquestra-dev');return}
  message('nodeMsg','Criando credencial…');
  const {data:auth}=await client.auth.getSession();
  if(!auth.session){message('nodeMsg','Sua sessão expirou.');return}
@@ -161,7 +161,7 @@ $('nodeForm').addEventListener('submit',async event=>{
      [projectId]:{slug:'orquestra',path:localPath}
    }
  };
- const pairingFile=new Blob([JSON.stringify(payload,null,2)+'\\n'],{type:'application/json'});
+ const pairingFile=new Blob([JSON.stringify(payload,null,2)+'\n'],{type:'application/json'});
  const temporaryUrl=URL.createObjectURL(pairingFile);
  const download=document.createElement('a');
  download.href=temporaryUrl;download.download='orquestra-agent-worker.json';
