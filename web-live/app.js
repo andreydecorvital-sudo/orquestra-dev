@@ -131,7 +131,7 @@ $('quickForm').addEventListener('submit',async event=>{
  const title=String(fd.get('title')||'').trim(),instructions=String(fd.get('instructions')||'').trim();
  const project_id=String(fd.get('project')||''),kind=String(fd.get('kind')||'codex');
  if(!data.projects.some(p=>p.id===project_id)){message('quickMsg','Cadastre e selecione um projeto.');return}
- if(!['codex','claude','joint','diagnose','integrations'].includes(kind))return;
+ if(!['codex','claude','joint','diagnose','integrations','hermes'].includes(kind))return;
  if(title.length<3||instructions.length<5)return;
  message('quickMsg','Salvando na fila…');
  const {error}=await client.from('orq_tasks').insert({project_id,title,instructions,kind});

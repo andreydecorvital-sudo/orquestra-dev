@@ -38,6 +38,8 @@ jobs:
           cmp "$unpacked/manifest.json" browser-bridge/manifest.json
           cmp "$unpacked/background.js" browser-bridge/background.js
           cmp "$unpacked/content.js" browser-bridge/content.js
+      - name: Hermes bridge is pure-Python
+        run: python3 -m py_compile gateway/hermes_bridge.py
       - name: Block tracked secrets
         run: |
           test ! -f runner/agent-worker.json
