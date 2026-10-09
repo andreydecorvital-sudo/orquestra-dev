@@ -14,3 +14,13 @@
 .browser-grid .subtle{margin:6px 8px 6px 0}
 .browser-grid p.soft{margin-top:0}
 @media(max-width:780px){.browser-grid{grid-template-columns:1fr}.browser-provider-row a,.browser-provider-row button{width:100%;justify-content:center}}
+
+/* Connection center: observable browser tab state, NOT provider authentication. */
+.connection-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:18px 0}
+.connection-card{min-width:0;display:flex;flex-direction:column;gap:12px}
+.connection-card .card-top h2{margin:0}
+.connection-card p.soft{flex:1;font-size:12px}
+.connection-card .status{white-space:normal;text-align:center;max-width:140px}
+.connection-card .status.completed{border-color:#305f48;background:#132b1e;color:#9fdfb5}
+.connection-action{display:inline-block;width:max-content;max-width:100%;text-decoration:none;white-space:normal}
+@media(max-width:980px){.connection-status-grid{grid-template-columns:1fr}}

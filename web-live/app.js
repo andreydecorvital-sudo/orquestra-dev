@@ -2,7 +2,7 @@
 // Only PUBLIC Supabase publishable credentials are accepted in setup.
 const $=id=>document.getElementById(id);
 const configKey='orquestra-public-supabase-config-v1';
-const pageNames={browser:'Modo navegador',home:'Visão geral',tasks:'Missões',projects:'Projetos',nodes:'Executores',settings:'Configurar'};
+const pageNames={browser:'Modo navegador',connections:'Conexões',home:'Visão geral',tasks:'Missões',projects:'Projetos',nodes:'Executores',settings:'Configurar'};
 let client=null,mode='setup',page='browser',data={projects:[],nodes:[],tasks:[]};
 function assertPublicConfig(raw){
   if(!raw || typeof raw!=='object')throw Error('Configuração inválida');
@@ -28,11 +28,12 @@ function listItem(title,metadata,status,output){
   row.append(body,badge);return row;
 }
 function replaceList(id,items,empty){const target=$(id);target.replaceChildren();if(!items.length){target.append(el('div','empty',empty));return}for(const row of items)target.append(row)}
-function setPage(name){if(!(name in pageNames))return;page=name;document.querySelectorAll('section.page').forEach(section=>section.hidden=section.id!==name || (mode==='auth' && name!=='browser')); $('auth').hidden=!(mode==='auth'&&name!=='browser');document.querySelectorAll('[data-page]').forEach(button=>button.classList.toggle('active',button.dataset.page===name));$('crumb').textContent=pageNames[name];$('nodeSecret').hidden=true;$('nodeSecret').textContent='';window.scrollTo(0,0)}
+function setPage(name){if(!(name in pageNames))return; if(mode!=='live' && !['browser','connections','settings'].includes(name))name='browser'; page=name; const privateBlocked=mode==='auth' && !['browser','connections'].includes(name); document.querySelectorAll('section.page').forEach(section=>section.hidden=section.id!==name || privateBlocked); $('auth').hidden=!privateBlocked; document.querySelectorAll('[data-page]').forEach(button=>button.classList.toggle('active',button.dataset.page===name));$('crumb').textContent=pageNames[name];$('nodeSecret').hidden=true;$('nodeSecret').textContent='';window.scrollTo(0,0)}
 function updateMode(){
  const active=mode==='live',authNeeded=mode==='auth';
- $('auth').hidden=!(authNeeded&&page!=='browser');
- document.querySelectorAll('section.page').forEach(section=>section.hidden=section.id!==page || (authNeeded&&page!=='browser'));
+ const loginScreen=authNeeded&&!['browser','connections'].includes(page);
+ $('auth').hidden=!loginScreen;
+ document.querySelectorAll('section.page').forEach(section=>section.hidden=section.id!==page || loginScreen);
  $('logout').hidden=!active;
  $('sideStatus').replaceChildren();const dot=el('i','dot'+(active?' on':''));$('sideStatus').append(dot,document.createTextNode(active?'Autenticado':authNeeded?'Login necessário':'Banco não conectado'));
  $('chip').textContent=active?'AUTENTICADO':authNeeded?'NAVEGADOR DISPONÍVEL':'MODO NAVEGADOR';

@@ -20,6 +20,24 @@ jobs:
         run: python3 -m compileall -q gateway runner orchestration
       - name: Browser JS syntax
         run: node --check web-live/app.js
+      - name: Chrome bridge scripts and protocol
+        run: |
+          node --check web-live/browser-mode.js
+          node --check web-live/connections.js
+          node --check browser-bridge/background.js
+          node --check browser-bridge/content.js
+          node tests/browser_bridge_mock.cjs
+      - name: Extension ZIP integrity
+        run: |
+          unzip -t downloads/orquestra-browser-bridge-v0.1.0.zip
+          unpacked="$(mktemp -d)"
+          unzip -q downloads/orquestra-browser-bridge-v0.1.0.zip -d "$unpacked"
+          test -f "$unpacked/manifest.json"
+          test -f "$unpacked/background.js"
+          test -f "$unpacked/content.js"
+          cmp "$unpacked/manifest.json" browser-bridge/manifest.json
+          cmp "$unpacked/background.js" browser-bridge/background.js
+          cmp "$unpacked/content.js" browser-bridge/content.js
       - name: Block tracked secrets
         run: |
           test ! -f runner/agent-worker.json

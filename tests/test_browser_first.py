@@ -14,7 +14,8 @@ class BrowserFirstTests(unittest.TestCase):
         self.assertIn('id="browser"',self.index)
         self.assertIn('data-page="browser"',self.index)
         self.assertIn('Modo navegador',self.index)
-        self.assertIn("page!=='browser'",self.app)
+        self.assertIn("['browser','connections']",self.app)
+        self.assertIn("loginScreen",self.app)
         self.assertIn("setPage('browser')",self.app)
 
     def test_official_links_only_and_no_provider_claims(self):
