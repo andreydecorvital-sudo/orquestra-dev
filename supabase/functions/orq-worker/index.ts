@@ -87,7 +87,7 @@ Deno.serve(async request => {
       const taskId=String(body.task_id||'');
       const attempt=body.attempt;
       if(!UUID.test(taskId))return reply({error:'invalid_id'},400);
-      if(!Number.isInteger(attempt)||!(attempt>=1&&attempt<=5))return reply({error:'invalid_attempt'},400);
+      if(typeof attempt!=='number'||!Number.isInteger(attempt)||attempt<1||attempt>5)return reply({error:'invalid_attempt'},400);
       const {data,error}=await admin.rpc('orq_heartbeat_task',{p_node_id:id,p_task_id:taskId,p_attempt:attempt});
       if(error)throw error;
       return data===true?reply({ok:true}):reply({error:'task_not_running_or_lease_expired'},409);
@@ -96,7 +96,7 @@ Deno.serve(async request => {
       const taskId=String(body.task_id||'');
       const attempt=body.attempt;
       if(!UUID.test(taskId))return reply({error:'invalid_id'},400);
-      if(!Number.isInteger(attempt)||!(attempt>=1&&attempt<=5))return reply({error:'invalid_attempt'},400);
+      if(typeof attempt!=='number'||!Number.isInteger(attempt)||attempt<1||attempt>5)return reply({error:'invalid_attempt'},400);
       const output=String(body.output||'').slice(0,18000);
       const {data,error}=await admin.rpc('orq_finish_task',{
         p_node_id:id,p_task_id:taskId,p_attempt:attempt,p_ok:body.ok===true,p_output:output,
