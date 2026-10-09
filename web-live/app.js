@@ -89,7 +89,7 @@ async function connect(cfg){
      if(event==='SIGNED_IN'&&session){mode='live';updateMode();setPage('home');setTimeout(refresh,0)}
      if(event==='SIGNED_OUT'){mode='auth';data={projects:[],nodes:[],tasks:[]};updateMode();setPage('browser');render()}
    });
- }catch(error){client=null;mode='setup';setPage('settings');updateMode();message('setupMsg','Falha ao iniciar conexão pública. Verifique se a URL e a chave estão corretas.')}
+ }catch(error){client=null;mode='setup';setPage('browser');updateMode();message('setupMsg','Banco temporariamente indisponível. O modo navegador continua funcionando sem Supabase.')}
 }
 document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>setPage(b.dataset.page)));
 $('setupForm').addEventListener('submit',async event=>{
