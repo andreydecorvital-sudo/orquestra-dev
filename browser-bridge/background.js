@@ -14,7 +14,7 @@ function officialSite(raw){
 chrome.runtime.onMessage.addListener((msg,sender,sendResponse)=>{
   if(msg?.channel!==CHANNEL || msg?.action!=='status')return false;
   if(!sender.tab || typeof sender.tab.url!=='string' || !sender.tab.url.startsWith(HOME))return false;
-  chrome.tabs.query({}, tabs=>{
+  chrome.tabs.query({url:['https://chatgpt.com/*','https://claude.ai/*']}, tabs=>{
     if(chrome.runtime.lastError){sendResponse({ok:false,protocol:1});return;}
     const sites=new Set(tabs.map(tab=>officialSite(tab.url)));
     sendResponse({ok:true,protocol:1,chatgptTabOpen:sites.has('chatgpt'),
