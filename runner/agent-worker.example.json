@@ -3,6 +3,7 @@
   "node_id": "UUID-DE-PAREAMENTO",
   "node_secret": "SEGREDO-MOSTRADO-UMA-VEZ",
   "allow_execution": false,
+  "allow_hermes_planning": false,
   "poll_seconds": 25,
   "projects": {
     "UUID-DO-PROJETO-CADASTRADO-NO-PAINEL": {

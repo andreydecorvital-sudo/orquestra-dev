@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from gateway.engine import GatewayError, execute_job, cli_status  # noqa: E402
+from gateway.hermes_bridge import hermes_ready, run_hermes  # noqa: E402
 
 
 def load_config(path: pathlib.Path) -> dict[str, Any]:
@@ -37,6 +38,8 @@ def load_config(path: pathlib.Path) -> dict[str, Any]:
         raise ValueError("Defina projects (ID remoto → slug local e pasta allowlisted)")
     if "allow_execution" not in config:
         config["allow_execution"] = False
+    if "allow_hermes_planning" not in config:
+        config["allow_hermes_planning"] = False
     return config
 
 
@@ -52,7 +55,7 @@ def post(config:dict[str,Any],payload:dict[str,Any],timeout:int=35)->dict[str,An
         return json.loads(response.read(512000).decode("utf-8"))
 
 
-def work_once(config:dict[str,Any],task:dict[str,Any],send=post, engine=execute_job,
+def work_once(config:dict[str,Any],task:dict[str,Any],send=post, engine=execute_job, hermes_engine=run_hermes,
               heartbeat_interval:float=55)->dict[str,Any]:
     remote_id=str(task["project_id"])
     local=config["projects"].get(remote_id)
@@ -63,7 +66,7 @@ def work_once(config:dict[str,Any],task:dict[str,Any],send=post, engine=execute_
     if not slug or not directory:
         raise GatewayError("Configure slug e path de projeto autorizado")
     kind=str(task.get("kind", ""))
-    if kind not in {"codex","claude","joint","diagnose","integrations"}:
+    if kind not in {"codex","claude","joint","diagnose","integrations","hermes"}:
         raise GatewayError("Tipo não permitido")
     attempt=task.get("attempt")
     if not isinstance(attempt,int) or isinstance(attempt,bool) or not 1 <= attempt <= 5:
@@ -94,7 +97,10 @@ def work_once(config:dict[str,Any],task:dict[str,Any],send=post, engine=execute_
     thread=threading.Thread(target=pulse,daemon=True)
     thread.start()
     try:
-        result=engine(engine_cfg,{"project":slug,"provider":kind,"type":"code","prompt":prompt})
+        if kind=="hermes":
+            result=hermes_engine(config,prompt,str(task["id"]))
+        else:
+            result=engine(engine_cfg,{"project":slug,"provider":kind,"type":"code","prompt":prompt})
     finally:
         stop.set();thread.join(timeout=1)
     if lease_lost.is_set():
@@ -108,6 +114,8 @@ def summarise(result:dict[str,Any])->str:
     lines=["Execução finalizada; alterações permanecem no executor para revisão."]
     if result.get("provider") == "git":
         return str(result.get("output", ""))[:12000]
+    if result.get("provider") == "hermes":
+        return "Plano Hermes (nenhum código executado):\n" + str(result.get("output", ""))[:7000]
     lines.append("Agente: "+str(result.get("provider","unknown"))[:24])
     for step in stages:
         lines.append(str(step.get("step","stage"))+": "+str(step.get("role","agent")))
@@ -125,6 +133,7 @@ def advertised_capabilities(config:dict[str,Any])->list[str]:
         if codex: caps.append('codex')
         if claude: caps.append('claude')
         if codex and claude: caps.append('joint')
+        if hermes_ready(config): caps.append('hermes')
     return caps
 
 

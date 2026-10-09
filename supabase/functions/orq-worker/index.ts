@@ -63,9 +63,9 @@ Deno.serve(async request => {
     const {error:touchError}=await admin.from('orq_nodes').update({last_seen_at:new Date().toISOString()}).eq('id',id);
     if(touchError)throw touchError;
     if(action==='capabilities') {
-      const allowed=['diagnose','integrations','codex','claude','joint'];
+      const allowed=['diagnose','integrations','codex','claude','joint','hermes'];
       const requested=body.capabilities;
-      if(!Array.isArray(requested)||requested.length>5 ||
+      if(!Array.isArray(requested)||requested.length>6 ||
          !requested.every(item=>typeof item==='string'&&allowed.includes(item)))
         return reply({error:'invalid_capabilities'},400);
       const capabilities=[...new Set(requested)];
