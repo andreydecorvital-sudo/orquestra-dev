@@ -7,7 +7,7 @@ em \`chatgpt.com\` e \`claude.ai\`. **Aba aberta ≠ usuário autenticado.**
 
 ## Instalação (Chrome/Opera base Chromium)
 
-1. Baixe este repositório ou o arquivo ZIP da extensão e extraia em pasta privada.
+1. Baixe o ZIP [Orquestra Browser Bridge](https://github.com/andreydecorvital-sudo/orquestra-dev/raw/refs/heads/main/downloads/orquestra-browser-bridge-v0.1.0.zip) (ou use esta pasta do repositório) e extraia em pasta privada.
 2. Abra \`chrome://extensions\`, ative **Modo do desenvolvedor**.
 3. Escolha **Carregar sem compactação** e selecione esta pasta \`browser-bridge\`.
 4. Volte a https://orquestra-dev-app.vercel.app/, recarregue e abra **Conexões**.
