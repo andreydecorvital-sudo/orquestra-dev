@@ -20,6 +20,13 @@ jobs:
         run: python3 -m compileall -q gateway runner orchestration
       - name: Browser JS syntax
         run: node --check web-live/app.js
+      - name: Chrome bridge scripts and protocol
+        run: |
+          node --check web-live/browser-mode.js
+          node --check web-live/connections.js
+          node --check browser-bridge/background.js
+          node --check browser-bridge/content.js
+          node tests/browser_bridge_mock.cjs
       - name: Block tracked secrets
         run: |
           test ! -f runner/agent-worker.json
