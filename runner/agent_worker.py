@@ -65,6 +65,9 @@ def work_once(config:dict[str,Any],task:dict[str,Any],send=post, engine=execute_
     kind=str(task.get("kind", ""))
     if kind not in {"codex","claude","joint","diagnose","integrations"}:
         raise GatewayError("Tipo não permitido")
+    attempt=task.get("attempt")
+    if not isinstance(attempt,int) or isinstance(attempt,bool) or not 1 <= attempt <= 5:
+        raise GatewayError("Tentativa de execução inválida; lease não pode ser confirmado")
     if kind in {"diagnose","integrations"}:
         # Existing read-only legacy diagnostics, no model session.
         from runner.worker import diagnose, inspect_integrations
@@ -81,7 +84,7 @@ def work_once(config:dict[str,Any],task:dict[str,Any],send=post, engine=execute_
     def pulse():
         while not stop.wait(heartbeat_interval):
             try:
-                result=send(config,{"action":"heartbeat","task_id":task["id"]})
+                result=send(config,{"action":"heartbeat","task_id":task["id"],"attempt":task["attempt"]})
                 if result.get("ok") is not True:
                     lease_lost.set();return
             except Exception:
@@ -149,14 +152,21 @@ def main()->None:
             except Exception as e:
                 ok=False;output="Missão falhou no executor: "+type(e).__name__+". Consulte logs locais."
             try:
-                post(config,{"action":"complete","task_id":task["id"],"ok":ok,"output":output})
+                post(config,{"action":"complete","task_id":task["id"],"attempt":task["attempt"],"ok":ok,"output":output})
             except Exception:
                 print("ERRO: não foi possível confirmar a conclusão. A fila recuperará o lease.")
         except KeyboardInterrupt:
             return
         except urllib.error.HTTPError as error:
-            print("Backend indisponível HTTP",error.code)
-            time.sleep(interval)
+            request_id=error.headers.get('x-orq-request-id','-') if error.headers else '-'
+            print("Backend HTTP",error.code,"request_id",request_id)
+            if error.code in (401,403):
+                print("Credencial revogada ou sem permissão; executor parado. Faça novo pareamento.")
+                return
+            if error.code == 429:
+                time.sleep(max(60,interval))
+            else:
+                time.sleep(interval)
         except Exception as error:
             print("Backend indisponível:",type(error).__name__)
             time.sleep(interval)
