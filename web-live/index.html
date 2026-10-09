@@ -2,10 +2,10 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#070708"><title>Orquestra Dev — Mission Control</title>
 <link rel="stylesheet" href="/styles.css"><script src="/config.js"></script>
-<script defer type="module" src="/app.js"></script><script defer src="/browser-mode.js"></script></head>
+<script defer type="module" src="/app.js"></script><script defer src="/browser-mode.js"></script><script defer src="/connections.js"></script></head>
 <body>
 <aside class="sidebar"><div class="brand">ORQUEST<span>RA</span><small>DEV COMMAND CENTER</small></div><nav aria-label="Navegação">
-<button type="button" data-page="browser" class="active">◫ <span>Modo navegador</span></button><button type="button" data-page="home">⌂ <span>Visão geral</span></button>
+<button type="button" data-page="browser" class="active">◫ <span>Modo navegador</span></button><button type="button" data-page="connections">◇ <span>Conexões</span></button><button type="button" data-page="home">⌂ <span>Visão geral</span></button>
 <button type="button" data-page="tasks">☷ <span>Missões</span></button>
 <button type="button" data-page="projects">▣ <span>Projetos</span></button>
 <button type="button" data-page="nodes">⎔ <span>Executores</span></button>
@@ -40,6 +40,31 @@
 <button type="button" id="browserClear" class="subtle">Limpar textos desta aba</button>
 </div></div>
 <div class="browser-clarification">Nenhuma assinatura é anunciada como ilimitada. O ChatGPT e o Claude mantêm seus próprios limites; para alterações Git, testes e execuções automáticas, a Orquestra ainda precisa dos agentes oficiais autorizados.</div>
+</section>
+<section id="connections" class="page" hidden>
+<span class="eyebrow">CONEXÕES · NAVEGADOR LOCAL</span><h1>Suas contas. <em>Seu Chrome.</em></h1>
+<p class="lead">A Orquestra reconhece as abas do ChatGPT e do Claude por uma extensão local. Você continua conectado nos sites oficiais, no seu perfil do Chrome. <strong>Detectar uma aba não comprova login nem concede acesso às conversas.</strong></p>
+<div class="browser-clarification"><strong>Privacidade por padrão.</strong> A extensão consulta apenas o endereço das abas para saber se os dois sites oficiais estão abertos. Não lê conteúdo das páginas, cookies, histórico das mensagens ou senhas e não envia dados ao Supabase.</div>
+<div class="connection-status-grid">
+<div class="card connection-card"><div class="card-top"><h2>Chrome Bridge</h2><span id="bridgeState" class="status">Não detectada</span></div>
+<p id="bridgeDetail" class="soft" role="status">Instale a extensão da Orquestra para visualizar as abas abertas.</p>
+<button id="bridgeRefresh" class="primary" type="button">↻ Verificar conexão</button>
+<a class="subtle connection-action" href="https://github.com/andreydecorvital-sudo/orquestra-dev/tree/main/browser-bridge" target="_blank" rel="noopener noreferrer">Ver extensão e instalação →</a>
+</div>
+<div class="card connection-card"><div class="card-top"><h2>ChatGPT</h2><span id="gptTabState" class="status">Não verificado</span></div>
+<p id="gptTabDetail" class="soft" role="status">Abrir o chat no Chrome não autoriza a Orquestra a ler ou enviar mensagens.</p>
+<a class="subtle connection-action" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">↗ Abrir ChatGPT</a>
+</div>
+<div class="card connection-card"><div class="card-top"><h2>Claude</h2><span id="claudeTabState" class="status">Não verificado</span></div>
+<p id="claudeTabDetail" class="soft" role="status">A aba oficial usa a sessão do seu Chrome, respeitando os limites da sua conta.</p>
+<a class="subtle connection-action" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">↗ Abrir Claude</a>
+</div>
+</div>
+<div class="card stacked">
+<h2>Login oficial para recursos de IA</h2>
+<p class="soft">O <a href="https://developers.openai.com/cookbook/articles/sign-in-with-chatgpt" target="_blank" rel="noopener noreferrer">Sign in with ChatGPT</a> existe para aplicativos elegíveis, mas ainda não foi habilitado na Orquestra. Isso é separado de abrir as abas. O Claude Code continua exigindo sua autenticação oficial. Não há OAuth ou API de inferência conectada nesta tela.</p>
+<p class="soft">Para começar sem instalar nada, use o <button type="button" data-page="browser" class="subtle">Modo navegador →</button>. Para executar tarefas no GitHub, é necessário parear um executor autorizado.</p>
+</div>
 </section>
 <section id="home" class="page" hidden><span class="eyebrow">SEU TIME DE DESENVOLVIMENTO</span><h1>Uma equipe. <em>Trabalho real.</em></h1><p class="lead">Você define o objetivo. Codex implementa, Claude cuida de design e revisão. Lelouch coordena o processo; Nagi assume a execução de código. Os nomes são papéis da Orquestra, não provedores.</p>
 <div class="hero-grid"><div class="card mission-card"><div class="card-top"><h2>Nova missão</h2><span class="mini">SEM PUBLICAÇÃO AUTOMÁTICA</span></div><form id="quickForm"><label>Título<input name="title" maxlength="140" minlength="3" required placeholder="Ex.: corrigir integração Shopee"></label><label>Instruções<textarea name="instructions" minlength="5" maxlength="12000" required placeholder="Descreva o resultado, o repositório, as restrições e como validar…"></textarea></label><div class="rowform"><label>Projeto<select name="project" class="projectSelect" required></select></label><label>Agentes<select name="kind"><option value="codex">Nagi → Codex (programação)</option><option value="claude">Claude (design/revisão)</option><option value="joint">GPT + Claude (conjunto)</option><option value="diagnose">Diagnóstico Git (sem IA)</option><option value="integrations">Inventário (sem IA)</option></select></label></div><button class="primary" type="submit" id="queueButton">Adicionar à fila →</button><div class="form-message" id="quickMsg" role="status"></div></form></div>
