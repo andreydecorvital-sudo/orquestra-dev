@@ -10,6 +10,8 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
+import subprocess
 import urllib.error
 import urllib.request
 from typing import Any
@@ -110,10 +112,41 @@ def safe_model(key: str) -> str:
         raise GatewayError("Nome de modelo Hermes inesperado")
     return name
 
+def subscription_only() -> None:
+    """Reject paid provider/fallback configurations before requesting inference."""
+    exe = shutil.which("hermes")
+    if not exe:
+        raise GatewayError("Hermes CLI não está instalado neste executor")
+
+    def setting(path: str) -> Any:
+        try:
+            p = subprocess.run([exe, "config", "get", path, "--json"], capture_output=True,
+                               text=True, timeout=12, shell=False)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise GatewayError("Não foi possível confirmar o provedor Hermes") from exc
+        if p.returncode != 0:
+            raise GatewayError("Configuração Hermes não verificável: " + path)
+        try:
+            return json.loads(p.stdout)
+        except (ValueError, UnicodeError) as exc:
+            raise GatewayError("Formato inesperado da configuração Hermes") from exc
+
+    model = setting("model")
+    if not isinstance(model, dict) or model.get("provider") != "openai-codex" \
+            or model.get("base_url") or model.get("api_key"):
+        raise GatewayError("Hermes deve usar somente openai-codex, sem endpoint/API paga")
+    fallbacks = setting("fallback_providers")
+    if fallbacks not in (None, [], {}):
+        raise GatewayError("Fallback de outros provedores desabilitado por segurança")
+    auxiliary = setting("auxiliary")
+    if auxiliary not in (None, {}, []):
+        raise GatewayError("Modelos auxiliares podem cobrar; desative-os para a Orquestra")
+
 def hermes_ready(config: dict[str, Any]) -> bool:
     if config.get("allow_execution") is not True or config.get("allow_hermes_planning") is not True:
         return False
     try:
+        subscription_only()
         safe_model(api_key())
         return True
     except GatewayError:
@@ -140,6 +173,7 @@ def run_hermes(config: dict[str, Any], prompt: str, task_id: str) -> dict[str, A
         raise GatewayError("Descrição Hermes inválida")
     if not re.fullmatch(r"[0-9a-fA-F-]{36}", task_id):
         raise GatewayError("Identificador de missão inválido")
+    subscription_only()
     key = api_key()
     name = safe_model(key)
     message = (
