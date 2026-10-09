@@ -15,8 +15,9 @@ Write-Host 'Não selecione OpenAI API Key, OpenRouter ou Nous Portal com crédit
 & hermes model
 if($LASTEXITCODE -ne 0){throw 'Seleção de modelo falhou; não vou continuar.'}
 Write-Host '3/3 Preparando API apenas em 127.0.0.1:8642, com chave local privada.'
-& powershell -NoProfile -File (Join-Path $PSScriptRoot 'prepare-hermes-windows.ps1')
-if($LASTEXITCODE -ne 0){throw 'Falha ao preparar a API local.'}
+# Reuse this SAME process: the launcher's Process-only execution policy applies here.
+# Do not spawn a second PowerShell process, which would lose that scope.
+& (Join-Path $PSScriptRoot 'prepare-hermes-windows.ps1')
 Write-Host 'Importante: Hermes por padrão possui terminal/arquivo. Vamos configurar ferramentas.'
 Write-Host 'No menu hermes tools, selecione o perfil API server e DESATIVE todas as ferramentas.'
 & hermes tools

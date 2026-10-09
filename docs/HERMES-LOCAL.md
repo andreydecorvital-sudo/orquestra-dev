@@ -10,7 +10,9 @@ sem transmiti-la ao Supabase, Vercel, GitHub ou navegador.
 
 ## Preparação (uma única vez, no Windows do executor)
 
-**Atalho recomendado:** baixe o [ZIP do repositório](https://github.com/andreydecorvital-sudo/orquestra-dev/archive/refs/heads/main.zip), extraia-o e abra `runner/conectar-hermes-windows.cmd`. O assistente orienta a autorização pelo navegador, a seleção de modelo e as ferramentas. Os passos abaixo são a versão manual.
+**Atalho recomendado:** baixe o [ZIP do repositório](https://github.com/andreydecorvital-sudo/orquestra-dev/archive/refs/heads/main.zip), clique em **Extrair tudo** e abra o arquivo **`INICIAR-HERMES.cmd` na raiz da pasta `orquestra-dev-main`**. Não digite `runner/...` a partir de `C:\Windows\System32`: o Windows procurará a pasta no lugar errado. Não precisa abrir como administrador. O assistente orienta o login no navegador, o modelo e as ferramentas. Os passos abaixo são a versão manual.
+
+**Erro `a execução de scripts foi desabilitada` / `UnauthorizedAccess`:** corrigido no iniciador. Ele usa `powershell.exe -NoProfile -ExecutionPolicy Bypass -File` somente para o **processo lançado**, sem `Set-ExecutionPolicy` global e sem mudar registro/políticas permanentes. O segundo script é executado no mesmo processo para preservar essa configuração. Execute exclusivamente arquivos do repositório que você confia e revisou. Políticas corporativas de grupo podem continuar impedindo a execução; nesse caso, consulte o administrador.
 
 
 1. Instale o Hermes pela [página oficial](https://hermes-agent.nousresearch.com/docs/getting-started/installation/). Confira o código do instalador antes de executá-lo. Não é necessário WSL.
