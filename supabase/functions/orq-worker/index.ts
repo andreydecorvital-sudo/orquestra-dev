@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.0';
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
   auth: { persistSession: false },
 });
-const allowedOrigin = Deno.env.get('ORQ_ALLOWED_ORIGIN') || 'https://orquestra-dev.vercel.app';
+const allowedOrigin = Deno.env.get('ORQ_ALLOWED_ORIGIN') || 'https://orquestra-dev-app.vercel.app';
 const apiHeaders = (origin: string | null) => ({
   'content-type': 'application/json', 'cache-control': 'no-store',
   'x-content-type-options':'nosniff',
