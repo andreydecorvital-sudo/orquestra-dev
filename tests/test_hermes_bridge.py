@@ -7,7 +7,7 @@ import unittest
 from unittest import mock
 
 from gateway.engine import GatewayError
-from gateway.hermes_bridge import api_key, safe_model, hermes_ready, run_hermes
+from gateway.hermes_bridge import api_key, safe_model, hermes_ready, run_hermes, subscription_only
 from runner.agent_worker import advertised_capabilities, work_once, summarise
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
@@ -39,6 +39,14 @@ class HermesBridgeTests(unittest.TestCase):
         with mock.patch('gateway.hermes_bridge._request',return_value={"unexpected":1}):
             with self.assertRaises(GatewayError):safe_model("K"*48)
 
+    def test_subscription_guard_rejects_paid_model(self):
+        with mock.patch('gateway.hermes_bridge.shutil.which',return_value='/usr/bin/hermes'), \
+             mock.patch('gateway.hermes_bridge.subprocess.run') as subprocess_run:
+            subprocess_run.return_value.returncode=0
+            subprocess_run.return_value.stdout=json.dumps({'provider':'openrouter'})
+            with self.assertRaisesRegex(GatewayError,'openai-codex'):
+                subscription_only()
+
     def test_model_only_mode_produces_text(self):
         sent=[]
         def respond(key,path,**kwargs):
@@ -47,6 +55,7 @@ class HermesBridgeTests(unittest.TestCase):
             if path=="/v1/models":return {"data":[{"id":"hermes-agent"}]}
             return {"choices":[{"message":{"content":"Plano: revisar testes; nenhum push."}}]}
         with mock.patch('gateway.hermes_bridge.api_key',return_value="K"*48), \
+             mock.patch('gateway.hermes_bridge.subscription_only'), \
              mock.patch('gateway.hermes_bridge._request',side_effect=respond):
             t=run_hermes({'allow_execution':True,'allow_hermes_planning':True},
                 "Revisar integração e sugerir testes",'a'*36)
