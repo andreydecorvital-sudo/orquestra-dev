@@ -11,10 +11,11 @@ const apiHeaders = (origin: string | null) => ({
   'access-control-allow-origin': origin === allowedOrigin ? allowedOrigin : 'null',
   'vary': 'Origin',
   'access-control-allow-headers':'authorization,apikey,content-type,x-orq-device-id,x-orq-device-secret',
-  'access-control-allow-methods':'POST,OPTIONS',
+  'access-control-allow-methods':'GET,POST,OPTIONS',
+  'access-control-expose-headers':'x-orq-request-id',
 });
-const json = (data:unknown, status:number, origin:string|null) =>
-  new Response(JSON.stringify(data), { status, headers:apiHeaders(origin) });
+const json = (data:unknown, status:number, origin:string|null,requestId:string) =>
+  new Response(JSON.stringify(data), { status, headers:{...apiHeaders(origin),'x-orq-request-id':requestId} });
 const hex=(bytes: Uint8Array) => Array.from(bytes).map(c => c.toString(16).padStart(2,'0')).join('');
 const sha256=async(value:string)=>hex(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))));
 const same=(a:string,b:string) => { if(a.length !== b.length)return false;
@@ -23,8 +24,11 @@ const same=(a:string,b:string) => { if(a.length !== b.length)return false;
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 Deno.serve(async request => {
   const origin=request.headers.get('origin');
-  const reply=(data:unknown,status=200) => json(data,status,origin);
+  const requestId=crypto.randomUUID();
+  const reply=(data:unknown,status=200) => json(data,status,origin,requestId);
   if(request.method==='OPTIONS') return new Response(null,{status:204,headers:apiHeaders(origin)});
+  if(request.method==='GET' && new URL(request.url).pathname.endsWith('/health'))
+    return reply({status:'live',service:'orq-worker',api_version:2});
   if(request.method!=='POST')return reply({error:'method_not_allowed'},405);
   const length=Number(request.headers.get('content-length')||'0');
   if(length>24000)return reply({error:'request_too_large'},413);
@@ -56,7 +60,8 @@ Deno.serve(async request => {
       .select('id,owner_id,secret_hash,revoked_at').eq('id',id).maybeSingle();
     if(nodeError||!node||node.revoked_at||!same(await sha256(secret),node.secret_hash))
       return reply({error:'device_not_authorized'},401);
-    await admin.from('orq_nodes').update({last_seen_at:new Date().toISOString()}).eq('id',id);
+    const {error:touchError}=await admin.from('orq_nodes').update({last_seen_at:new Date().toISOString()}).eq('id',id);
+    if(touchError)throw touchError;
     if(action==='capabilities') {
       const allowed=['diagnose','integrations','codex','claude','joint'];
       const requested=body.capabilities;
@@ -80,24 +85,28 @@ Deno.serve(async request => {
     }
     if(action==='heartbeat') {
       const taskId=String(body.task_id||'');
+      const attempt=body.attempt;
       if(!UUID.test(taskId))return reply({error:'invalid_id'},400);
-      const {data,error}=await admin.rpc('orq_heartbeat_task',{p_node_id:id,p_task_id:taskId});
+      if(typeof attempt!=='number'||!Number.isInteger(attempt)||attempt<1||attempt>5)return reply({error:'invalid_attempt'},400);
+      const {data,error}=await admin.rpc('orq_heartbeat_task',{p_node_id:id,p_task_id:taskId,p_attempt:attempt});
       if(error)throw error;
       return data===true?reply({ok:true}):reply({error:'task_not_running_or_lease_expired'},409);
     }
     if(action==='complete') {
       const taskId=String(body.task_id||'');
+      const attempt=body.attempt;
       if(!UUID.test(taskId))return reply({error:'invalid_id'},400);
+      if(typeof attempt!=='number'||!Number.isInteger(attempt)||attempt<1||attempt>5)return reply({error:'invalid_attempt'},400);
       const output=String(body.output||'').slice(0,18000);
       const {data,error}=await admin.rpc('orq_finish_task',{
-        p_node_id:id,p_task_id:taskId,p_ok:body.ok===true,p_output:output,
+        p_node_id:id,p_task_id:taskId,p_attempt:attempt,p_ok:body.ok===true,p_output:output,
       });
       if(error)throw error;
       return data===true?reply({ok:true}):reply({error:'task_not_running_or_lease_expired'},409);
     }
     return reply({error:'unknown_action'},400);
   } catch(error) {
-    console.error('orq-worker internal failure',error instanceof Error?error.name:'unknown');
+    console.error('orq-worker internal failure',requestId,error instanceof Error?error.name:'unknown');
     return reply({error:'internal_error'},500);
   }
 });

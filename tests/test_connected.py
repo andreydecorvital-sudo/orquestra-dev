@@ -53,7 +53,7 @@ class ConnectedTests(unittest.TestCase):
             return {'provider':'joint','stages':[]}
         def send(config,payload): return {'ok':True}
         output=work_once({'projects':{'uuid':{'slug':'foo','path':'/tmp/foo'}},'allow_execution':True},
-            {'id':'task-1','kind':'joint','project_id':'uuid','title':'Uma tarefa','instructions':'Código'},
+            {'id':'task-1','kind':'joint','project_id':'uuid','attempt':1,'title':'Uma tarefa','instructions':'Código'},
             send=send,engine=engine,heartbeat_interval=.01)
         self.assertEqual(output['provider'],'joint')
         self.assertEqual(received[0][1]['project'],'foo')
