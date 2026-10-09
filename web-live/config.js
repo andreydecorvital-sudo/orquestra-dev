@@ -1,2 +1,2 @@
-// Only PUBLIC Supabase credentials. For secret keys, use Supabase Edge Function env.
-window.ORQ_CONFIG = { supabaseUrl: "", supabasePublishableKey: "" };
+// PUBLIC Supabase publishable key (safe for browser). Never put service_role or model tokens here.
+window.ORQ_CONFIG = { supabaseUrl: "https://kekxcvcgyexcbleifffq.supabase.co", supabasePublishableKey: "sb_publishable_CoeUjnILlXbHjv_6mBkYJA_sjylqBfw" };
