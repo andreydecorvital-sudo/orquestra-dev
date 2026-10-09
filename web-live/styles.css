@@ -4,3 +4,13 @@
 .onboarding-note{padding:12px;margin:12px 0 18px;border:1px solid #4d3538;border-radius:8px;color:#d1c4c6;background:#21191b;font-size:12px;line-height:1.65}
 .onboarding-note a{color:#ff8690;text-decoration:underline}
 .secret a.subtle{display:inline-block;margin-top:10px;text-decoration:none;white-space:normal}
+
+/* Browser first: uses official chats, never a model session/API proxy. */
+.browser-clarification{border-left:3px solid #d94e5c;background:#231619;color:#e0ccd0;padding:14px 16px;border-radius:6px;font-size:12px;line-height:1.65;margin:12px 0 22px}
+.browser-provider-row{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0 24px;align-items:center}
+.browser-provider-row a.subtle{display:inline-flex;align-items:center;text-decoration:none}
+.browser-grid .card{min-width:0}
+.browser-grid textarea[readonly]{color:#f6dfdf;min-height:150px}
+.browser-grid .subtle{margin:6px 8px 6px 0}
+.browser-grid p.soft{margin-top:0}
+@media(max-width:780px){.browser-grid{grid-template-columns:1fr}.browser-provider-row a,.browser-provider-row button{width:100%;justify-content:center}}
