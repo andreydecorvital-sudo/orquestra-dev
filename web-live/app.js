@@ -61,13 +61,13 @@ function render(){
  replaceList('recentList',taskRows.slice(0,4),'Sem missões ainda. Cadastre um projeto e crie a primeira tarefa.');
  replaceList('tasksList',taskRows,'Sem missões nesta conta.');
  replaceList('projectsList',projects.map(p=>listItem(p.name,p.repo_url||'Sem URL cadastrada','REGISTRADO')),'Nenhum projeto cadastrado.');
- replaceList('nodesList',nodes.map(n=>listItem(n.name,'ID: '+n.id+' · Último contato: '+when(n.last_seen_at),n.revoked_at?'REVOGADO':n.last_seen_at&&(Date.now()-Date.parse(n.last_seen_at))<120000?'ONLINE':'OFFLINE')),'Nenhum executor pareado.');
+ replaceList('nodesList',nodes.map(n=>listItem(n.name,'ID: '+n.id+' · Último contato: '+when(n.last_seen_at),n.revoked_at?'REVOGADO':n.last_seen_at&&(Date.now()-Date.parse(n.last_seen_at))<120000?'ONLINE · '+(n.capabilities||[]).join(', '):'OFFLINE')),'Nenhum executor pareado.');
 }
 async function refresh(){if(mode!=='live'||!client)return;
  try{
   const [projects,nodes,tasks]=await Promise.all([
     client.from('orq_projects').select('id,name,repo_url,created_at').order('created_at',{ascending:false}),
-    client.from('orq_nodes').select('id,name,last_seen_at,revoked_at').order('created_at',{ascending:false}),
+    client.from('orq_nodes').select('id,name,last_seen_at,revoked_at,capabilities').order('created_at',{ascending:false}),
     client.from('orq_tasks').select('id,project_id,title,kind,status,output,created_at,started_at,finished_at,attempts').order('created_at',{ascending:false}).limit(100)
   ]);
   if(projects.error||nodes.error||tasks.error)throw projects.error||nodes.error||tasks.error;
@@ -140,7 +140,10 @@ $('quickForm').addEventListener('submit',async event=>{
 $('nodeForm').addEventListener('submit',async event=>{
  event.preventDefault();if(mode!=='live'||!client){message('nodeMsg','Faça login antes de parear.');return}
  const fd=new FormData(event.currentTarget);const name=String(fd.get('name')||'').trim();
+ const projectId=String(fd.get('project_id')||'');const localPath=String(fd.get('local_path')||'').trim();
  if(!name||name.length>90)return;
+ if(!data.projects.some(p=>p.id===projectId)){message('nodeMsg','Cadastre e selecione primeiro um projeto autorizado.');return}
+ if(!/^[a-z]:\\\\[^\r\n]{3,255}$/i.test(localPath)){message('nodeMsg','Informe um caminho absoluto válido no Windows, como C:\\\\Orquestra\\\\Repos\\\\orquestra-dev');return}
  message('nodeMsg','Criando credencial…');
  const {data:auth}=await client.auth.getSession();
  if(!auth.session){message('nodeMsg','Sua sessão expirou.');return}
@@ -152,9 +155,23 @@ $('nodeForm').addEventListener('submit',async event=>{
    body:JSON.stringify({action:'register',name})});
  const value=await result.json();
  if(!result.ok)throw Error(value.error||'pairing_failed');
- $('nodeSecret').textContent='COPIE AGORA (uma única vez)\nnode_id: '+value.node.id+'\nnode_secret: '+value.secret+'\n\nColoque no runner/agent-worker.json e nunca no GitHub.';
- $('nodeSecret').hidden=false;
- message('nodeMsg','Executor registrado. Configure o segredo na máquina do agente.');
+ const payload={
+   supabase_url:cfg.supabaseUrl,node_id:value.node.id,node_secret:value.secret,
+   allow_execution:false,poll_seconds:25,projects:{
+     [projectId]:{slug:'orquestra',path:localPath}
+   }
+ };
+ const pairingFile=new Blob([JSON.stringify(payload,null,2)+'\\n'],{type:'application/json'});
+ const temporaryUrl=URL.createObjectURL(pairingFile);
+ const download=document.createElement('a');
+ download.href=temporaryUrl;download.download='orquestra-agent-worker.json';
+ download.textContent='Baixar arquivo de pareamento (uma vez)';
+ download.className='subtle';
+ const secretDiv=$('nodeSecret');
+ secretDiv.replaceChildren(document.createTextNode('Credencial criada para '+value.node.name+'. Baixe o JSON e guarde-o com segurança. NÃO compartilhe o arquivo nem o publique no GitHub. '),download);
+ secretDiv.hidden=false;
+ download.addEventListener('click',()=>setTimeout(()=>URL.revokeObjectURL(temporaryUrl),2000),{once:true});
+ message('nodeMsg','Executor registrado. O arquivo de pareamento permanece disponível apenas nesta tela.');
  event.currentTarget.reset();await refresh();
  }catch(e){message('nodeMsg','Não foi possível parear: '+String(e.message||'falha'))}
 });
