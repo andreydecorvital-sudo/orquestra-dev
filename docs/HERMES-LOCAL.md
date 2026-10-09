@@ -10,6 +10,9 @@ sem transmiti-la ao Supabase, Vercel, GitHub ou navegador.
 
 ## Preparação (uma única vez, no Windows do executor)
 
+**Atalho recomendado:** baixe o [ZIP do repositório](https://github.com/andreydecorvital-sudo/orquestra-dev/archive/refs/heads/main.zip), extraia-o e abra `runner/conectar-hermes-windows.cmd`. O assistente orienta a autorização pelo navegador, a seleção de modelo e as ferramentas. Os passos abaixo são a versão manual.
+
+
 1. Instale o Hermes pela [página oficial](https://hermes-agent.nousresearch.com/docs/getting-started/installation/). Confira o código do instalador antes de executá-lo. Não é necessário WSL.
 2. Abra PowerShell e autentique com seu navegador:
 
