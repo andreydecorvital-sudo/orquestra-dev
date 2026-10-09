@@ -16,6 +16,8 @@ import tempfile
 import threading
 from typing import Any
 
+from orchestration.quality import QualityError, inspect_worktree
+
 API_ENV = {
     "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CODEX_API_KEY",
     "ANTHROPIC_AUTH_TOKEN", "OPENAI_BASE_URL", "ANTHROPIC_BASE_URL",
@@ -166,11 +168,6 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
             patch_oversize = len(patch.encode("utf-8")) > 40000
             changed = subprocess.run(["git", "status", "--short"], cwd=str(worktree),
                                      capture_output=True, text=True, timeout=20, shell=False)
-            if job["provider"] == "joint":
-                review_prompt = ("Revise sem editar este trabalho em relação aos critérios. "
-                                 "Aponte erros e melhorias.\n\nTarefa: " + job["prompt"] + "\n\nDiff:\n" + patch[:10000])
-                review = cli("claude", review_prompt, worktree)
-                stages.append({"role": "claude", "step": "review", "result": review["output"][-4000:]})
             if not patch.strip() and job["provider"] in {"codex", "joint"}:
                 raise GatewayError("Execução terminou sem patch; nenhum resultado foi registrado como entregue")
             # No secrets should be returned as a patch; block suspicious credential literals.
@@ -187,8 +184,24 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
                 patch_path.chmod(0o600)
             except OSError:
                 pass
+            # Preserve source changes BEFORE QA and Claude review: neither can erase work.
+            try:
+                quality = inspect_worktree(worktree)
+            except QualityError as exc:
+                raise GatewayError("Quality gate bloqueou entrega; patch local preservado: " + str(exc)) from exc
+            if job["provider"] == "joint":
+                review_prompt = ("Revise sem editar este trabalho em relação aos critérios. "
+                                 "Aponte erros e melhorias. Não declare testes que não foram executados."
+                                 "\n\nTarefa: " + job["prompt"] + "\n\nDiff:\n" + patch[:10000]
+                                 + "\n\nQuality gate:\n" + json.dumps(quality, ensure_ascii=False))
+                try:
+                    review = cli("claude", review_prompt, worktree)
+                except GatewayError as exc:
+                    raise GatewayError("Revisão Claude indisponível; patch local preservado para nova revisão") from exc
+                stages.append({"role": "claude", "step": "review", "result": review["output"][-4000:]})
             return {"status": "review_required", "project": job["project"], "mode": job["provider"],
-                    "worktree_mode": "detached", "stages": stages, "changed_files": changed.stdout[:3000],
+                    "worktree_mode": "detached", "stages": stages, "quality": quality,
+                    "changed_files": changed.stdout[:3000],
                     "patch": "" if patch_oversize else patch, "patch_oversize": patch_oversize,
                     "artifact_path": str(patch_path),
                     "note": "Patch salvo localmente para revisão. Nenhum push, PR, merge ou deploy foi feito."}
