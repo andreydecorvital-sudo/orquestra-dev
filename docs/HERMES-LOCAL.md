@@ -38,7 +38,7 @@ sem transmiti-la ao Supabase, Vercel, GitHub ou navegador.
    em outras conversas.
 5. Execute \`hermes gateway\` no computador. Ele deverá escutar apenas em
    \`http://127.0.0.1:8642\`.
-6. Cadastre projeto de teste e pareie um executor na Orquestra, via aba
+7. Cadastre projeto de teste e pareie um executor na Orquestra, via aba
    Executores. No arquivo privado \`runner/agent-worker.json\`, habilite:
    
    \`\`\`json
@@ -48,7 +48,7 @@ sem transmiti-la ao Supabase, Vercel, GitHub ou navegador.
    Essas são **duas propriedades do arquivo de configuração já criado**;
    não substitua o restante do JSON por esse exemplo.
 
-7. Inicie \`python -m runner.agent_worker\`. Quando o Hermes responder
+8. Inicie \`python -m runner.agent_worker\`. Quando o Hermes responder
    a \`/v1/models\` e \`/v1/toolsets\` em modo seguro, o executor anuncia
    capacidade **hermes**. Crie tarefa da modalidade Hermes no painel.
 
