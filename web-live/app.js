@@ -2,8 +2,8 @@
 // Only PUBLIC Supabase publishable credentials are accepted in setup.
 const $=id=>document.getElementById(id);
 const configKey='orquestra-public-supabase-config-v1';
-const pageNames={home:'Visão geral',tasks:'Missões',projects:'Projetos',nodes:'Executores',settings:'Configurar'};
-let client=null,mode='setup',page='settings',data={projects:[],nodes:[],tasks:[]};
+const pageNames={browser:'Modo navegador',home:'Visão geral',tasks:'Missões',projects:'Projetos',nodes:'Executores',settings:'Configurar'};
+let client=null,mode='setup',page='browser',data={projects:[],nodes:[],tasks:[]};
 function assertPublicConfig(raw){
   if(!raw || typeof raw!=='object')throw Error('Configuração inválida');
   const url=String(raw.supabaseUrl||'').trim().replace(/\/$/,'');
@@ -28,17 +28,17 @@ function listItem(title,metadata,status,output){
   row.append(body,badge);return row;
 }
 function replaceList(id,items,empty){const target=$(id);target.replaceChildren();if(!items.length){target.append(el('div','empty',empty));return}for(const row of items)target.append(row)}
-function setPage(name){if(!(name in pageNames))return;page=name;document.querySelectorAll('section.page').forEach(section=>section.hidden=section.id!==name);document.querySelectorAll('[data-page]').forEach(button=>button.classList.toggle('active',button.dataset.page===name));$('crumb').textContent=pageNames[name];$('nodeSecret').hidden=true;$('nodeSecret').textContent='';window.scrollTo(0,0)}
+function setPage(name){if(!(name in pageNames))return;page=name;document.querySelectorAll('section.page').forEach(section=>section.hidden=section.id!==name || (mode==='auth' && name!=='browser')); $('auth').hidden=!(mode==='auth'&&name!=='browser');document.querySelectorAll('[data-page]').forEach(button=>button.classList.toggle('active',button.dataset.page===name));$('crumb').textContent=pageNames[name];$('nodeSecret').hidden=true;$('nodeSecret').textContent='';window.scrollTo(0,0)}
 function updateMode(){
  const active=mode==='live',authNeeded=mode==='auth';
- $('auth').hidden=!authNeeded;
- document.querySelectorAll('section.page').forEach(section=>section.hidden=authNeeded||section.id!==page);
+ $('auth').hidden=!(authNeeded&&page!=='browser');
+ document.querySelectorAll('section.page').forEach(section=>section.hidden=section.id!==page || (authNeeded&&page!=='browser'));
  $('logout').hidden=!active;
  $('sideStatus').replaceChildren();const dot=el('i','dot'+(active?' on':''));$('sideStatus').append(dot,document.createTextNode(active?'Autenticado':authNeeded?'Login necessário':'Banco não conectado'));
- $('chip').textContent=active?'AUTENTICADO':authNeeded?'LOGIN NECESSÁRIO':'SEM BACKEND';
+ $('chip').textContent=active?'AUTENTICADO':authNeeded?'NAVEGADOR DISPONÍVEL':'MODO NAVEGADOR';
  if(active){setBanner('Backend conectado. Tarefas podem ser enviadas à fila; a execução depende de um worker pareado e autorizado.',true)}
- else if(authNeeded)setBanner('Banco conectado, mas você precisa entrar. O site não utiliza nem armazena logins de GPT ou Claude.');
- else setBanner('Configure um Supabase exclusivo em “Configurar”. Nenhuma tarefa real é executada sem essa conexão.');
+ else if(authNeeded)setBanner('Modo navegador disponível sem login da Orquestra. Para salvar projetos e executar missões, entre na conta privada do Supabase.');
+ else setBanner('Modo navegador disponível sem configuração. O acesso aos chats é feito nas abas oficiais, sem automatização.');
  $('queueButton').disabled=!active;
 }
 function render(){
@@ -84,12 +84,12 @@ async function connect(cfg){
    if(error && error.name!=='AuthSessionMissingError')console.warn('Initial auth status:',error.name);
    mode=auth?.user?'live':'auth';
    updateMode();
-   if(mode==='live'){setPage('home');await refresh()}
+   if(mode==='live'){setPage('home');await refresh()} else setPage('browser');
    client.auth.onAuthStateChange((event,session)=>{
      if(event==='SIGNED_IN'&&session){mode='live';updateMode();setPage('home');setTimeout(refresh,0)}
-     if(event==='SIGNED_OUT'){mode='auth';data={projects:[],nodes:[],tasks:[]};updateMode();render()}
+     if(event==='SIGNED_OUT'){mode='auth';data={projects:[],nodes:[],tasks:[]};updateMode();setPage('browser');render()}
    });
- }catch(error){client=null;mode='setup';setPage('settings');updateMode();message('setupMsg','Falha ao iniciar conexão pública. Verifique se a URL e a chave estão corretas.')}
+ }catch(error){client=null;mode='setup';setPage('browser');updateMode();message('setupMsg','Banco temporariamente indisponível. O modo navegador continua funcionando sem Supabase.')}
 }
 document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>setPage(b.dataset.page)));
 $('setupForm').addEventListener('submit',async event=>{
@@ -178,6 +178,6 @@ $('nodeForm').addEventListener('submit',async event=>{
 $('refresh').addEventListener('click',refresh);
 const cfg=savedConfig();
 if(cfg){$('supabaseUrl').value=cfg.supabaseUrl;$('publishableKey').value=cfg.supabasePublishableKey;await connect(cfg)}
-else{mode='setup';setPage('settings');updateMode()}
+else{mode='setup';setPage('browser');updateMode()}
 render();
 setInterval(()=>{if(mode==='live'&&!document.hidden)refresh()},20000);
