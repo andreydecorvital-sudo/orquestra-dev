@@ -16,6 +16,18 @@ Use **Iniciar motor Hermes** antes de enviar missoes e mantenha a janela do gate
 
 Este iniciador **não substitui** a fila Supabase anterior nem libera qualquer produção. É um modo adicional que usa o dispatcher nativo do Hermes e não necessita de Vercel/Supabase para criar tarefas na máquina local.
 
+## Login ChatGPT exclusivamente no Opera (Windows)
+
+O menu **2 - Conectar contas** oferece as opcoes:
+- **1: ChatGPT no Codex (Opera)** — inicia o login oficial `codex login --device-auth` e abre **https://auth.openai.com/codex/device** diretamente no Opera, sem acionar o browser padrao.
+- **3: Hermes Nagi com ChatGPT (Opera)** — configura `auth.codex_login_flow=device_code` no perfil `nagi`, abre a mesma pagina no Opera e executa `hermes -p nagi auth add openai-codex --type oauth` para receber codigo de uso unico.
+
+O Opera e localizado nos caminhos padrao do **Opera / Opera GX**. Se nao for encontrado, surge um seletor de arquivos para `opera.exe` ou `launcher.exe`, salvando a escolha localmente em `%LOCALAPPDATA%\\Orquestra\\opera-path.txt`. Para instalacoes portateis, tambem pode ser definida a variavel `ORQUESTRA_OPERA_PATH`. **Nao altera o navegador padrao nem instala extensao de navegador.**
+
+O usuario deve concluir o login, inserir o **codigo temporario no Opera** e manter a janela da Orquestra aberta. O codigo so aparece no console local, nao e copiado para o repositorio, cloud ou logs. O login por codigo precisa estar habilitado nas **configuracoes de seguranca da conta ChatGPT**; se desabilitado, a Orquestra mostra falha sem abrir Chrome. No menu Gemini, mantem-se a autenticacao independente da Google.
+
+> O suporte por codigo de dispositivo depende do provedor, conta, rede e versao das CLIs; testes do GitHub Actions usam mocks e nao acessam as contas reais.
+
 ## Corrigido após primeiro piloto no Windows
 
 - O menu de nova missão e status agora encaminha corretamente múltiplos argumentos ao Python.
