@@ -58,7 +58,7 @@ Worktrees isolados ficam em `%LOCALAPPDATA%\Orquestra\worktrees` e **não são r
 - Gemini CLI precisa de login Google já feito em sessão interativa `gemini`. A automação **não** usa `GEMINI_API_KEY`, `GOOGLE_API_KEY`, fallback de API paga, nem envia credenciais para Supabase.
 - Ao atingir limite ou falhar no login do Gemini, a automação para; não consome a franquia GPT silenciosamente.
 - Gemini opera em modo plan e diretório temporário, mas **isso não é isolamento de sistema operacional**; mantenha a execução restrita a máquina e projetos de confiança. O Gemini não recebe o diretório de código; Nagi só usa uma cópia Git separada.
-- Claude continua desativado na CLI nova. Grokbot não foi habilitado automaticamente. Se sua conta xAI elegível permitir, `hermes auth add xai-oauth` usa OAuth no Hermes, mas exige um perfil separado e teste de inferência real sem `XAI_API_KEY`.
+- Claude continua desativado na CLI nova. **Grok Bot** é um produto de agentes com computador em nuvem e uso próprio; sua assinatura não garante automaticamente que o mesmo login funcione no Hermes. Se sua conta xAI também for elegível para o OAuth do Grok via Hermes, teste `hermes auth add xai-oauth` em perfil separado e a resposta real antes de integrá-lo. Não use `XAI_API_KEY` nem fallback pago sem autorização.
 
 ## Limitações atuais
 
@@ -75,3 +75,4 @@ Worktrees isolados ficam em `%LOCALAPPDATA%\Orquestra\worktrees` e **não são r
 - https://geminicli.com/docs/get-started/authentication/
 - https://geminicli.com/docs/cli/headless/
 - https://hermes-agent.nousresearch.com/docs/guides/xai-grok-oauth/
+- https://docs.x.ai/grok-bot/overview
