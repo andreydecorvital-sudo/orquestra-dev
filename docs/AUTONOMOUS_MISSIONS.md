@@ -1,5 +1,18 @@
 # Autonomous Missions — autonomy by default, evidence before success
 
+## Cross-project loop contract
+
+The generic method is defined at
+`andreydecorvital-sudo/origin/docs/GOAL_LOOP_CONTRACT.md`
+(review PR: https://github.com/andreydecorvital-sudo/origin/pull/23).
+The Orquestra is the **owner of real code-execution loops**: repository
+allowlist, worker, lease, CLI session, code review and testing remain here.
+Origin does not become a dependency, an executor or a source of permissions.
+
+A human objective should drive all safe substeps without "próximo".
+The worker must never equate tool completion with goal satisfaction. Failure
+after a remote-side effect or uncertain lease must stop for reconciliation.
+
 ## User contract
 
 One objective is enough. Agents should infer *minor*, reversible details using
@@ -33,6 +46,23 @@ run the complete application's tests, independently evaluate business goals,
 resume a repaired worktree across worker crashes, or deploy code. The existing
 job queue and heartbeat still handle worker assignment, not full mission
 continuation.
+
+## Recibos duráveis de conclusão local (PR #16)
+
+`orchestration/mission_journal.py` reserva uma missão por ID, fingerprint de
+payload e node antes de invocar a CLI. O worker registra um recibo com SHA-256
+do patch local e resumo limitado **antes do ACK ao servidor**. Se o ACK falhar,
+uma nova tentativa da mesma missão no mesmo nó pode reenviar o recibo sem
+reexecutar o modelo. Se o patch tiver sido alterado, o payload mudado ou a
+execução anterior não tiver conclusão confirmada, **não** há replay cego;
+o estado exige reconciliação.
+
+Isso preserva **entrega de patch**, não prova final de objetivo e não
+recupera um worktree parcialmente escrito. Uma missão que fique em
+`running` no journal sem recibo `ready` precisa ser diagnosticada. A
+persistência é local e específica do nó. Execução em outro nó requer
+outra camada de idempotência distribuída. Os patches não são enviados
+integralmente ao backend; a revisão do artefato permanece local.
 
 ## Follow-on milestones
 
