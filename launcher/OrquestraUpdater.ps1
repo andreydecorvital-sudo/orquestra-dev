@@ -68,7 +68,7 @@ function Test-ExcludedUpdatePath([string]$RelativePath) {
   }
   $name = [IO.Path]::GetFileName($normalized)
   if ($normalized -eq 'ABRIR-ORQUESTRA.cmd') { return $true } # bootstrap batch file is executing the updater
-  if ($name -eq '.env' -or $name -match '^\.env\.(local|production|development|test)$') { return $true }
+  if ($name -eq '.env' -or ($name -match '^\.env\.' -and $name -notin @('.env.example','.env.sample','.env.template'))) { return $true }
   if ($name -match '\.(log|sqlite|sqlite3|db|pyc|pem|p12)$') { return $true }
   if ($normalized -match '(^|\\)runner\\agent-worker\.json$') { return $true }
   if ($normalized -match '(^|\\)gateway\\config\.json$') { return $true }
