@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 
 from gateway.engine import GatewayError, execute_job, cli_status  # noqa: E402
 from gateway.hermes_bridge import hermes_ready, run_hermes  # noqa: E402
+from orchestration.mission_journal import MissionJournal  # noqa: E402
 
 
 def load_config(path: pathlib.Path) -> dict[str, Any]:
@@ -111,7 +112,7 @@ def work_once(config:dict[str,Any],task:dict[str,Any],send=post, engine=execute_
 def summarise(result:dict[str,Any])->str:
     """Keep remote evidence small. No output of local paths or raw secrets."""
     stages=result.get("stages",[])
-    lines=["Execução finalizada; alterações permanecem no executor para revisão."]
+    lines=["Patch preparado no executor; revisão e testes completos ainda podem estar pendentes."]
     if result.get("provider") == "git":
         return str(result.get("output", ""))[:12000]
     if result.get("provider") == "hermes":
@@ -121,8 +122,44 @@ def summarise(result:dict[str,Any])->str:
         lines.append(str(step.get("step","stage"))+": "+str(step.get("role","agent")))
     if result.get("patch_saved") or result.get("artifact_path"):
         lines.append("Patch persistido no executor (não enviado integralmente ao backend)")
+    if isinstance(result.get("quality"), dict):
+        checks = result["quality"]
+        lines.append("Testes do projeto: "+str(checks.get("tests","not_run"))[:100])
+        lines.append("Reparos automáticos: "+str(checks.get("autonomous_repairs",0))[:4])
     lines.append("PR: não criado automaticamente; nenhuma ação em produção")
     return "\n".join(lines)[:18000]
+
+
+def deliver_task(
+    config: dict[str, Any],
+    task: dict[str, Any],
+    *,
+    execute=work_once,
+    journal: MissionJournal | None = None,
+) -> str:
+    """Complete a locally durable coding phase; never re-run an uncertain task.
+
+    A successful local patch is checkpointed before the backend is ACKed.
+    After a lost HTTP acknowledgement the next leased attempt returns the
+    same proof rather than invoking the coding CLI again.
+    """
+    kind = str(task.get("kind", ""))
+    uses_journal = kind in {"codex", "claude", "joint"}
+    if uses_journal:
+        if journal is None:
+            base = pathlib.Path.home() / ".orquestra"
+            journal = MissionJournal(root=base / "mission-receipts",
+                                     artifacts_root=base / "artifacts",
+                                     node_id=str(config.get("node_id", "")))
+        saved = journal.begin(task)
+        if saved is not None:
+            return saved
+    result = execute(config, task)
+    summary = summarise(result)
+    if uses_journal:
+        assert journal is not None
+        journal.complete(task, result, summary)
+    return summary
 
 
 def advertised_capabilities(config:dict[str,Any])->list[str]:
@@ -156,12 +193,14 @@ def main()->None:
                 time.sleep(interval);continue
             print("MISSÃO",str(task.get("id",""))[:8],"tentativa",task.get("attempt"))
             try:
-                result=work_once(config,task)
-                ok=True;output=summarise(result)
+                output=deliver_task(config,task)
+                ok=True
             except Exception as e:
                 ok=False;output="Missão falhou no executor: "+type(e).__name__+". Consulte logs locais."
             try:
-                post(config,{"action":"complete","task_id":task["id"],"attempt":task["attempt"],"ok":ok,"output":output})
+                confirmation=post(config,{"action":"complete","task_id":task["id"],"attempt":task["attempt"],"ok":ok,"output":output})
+                if confirmation.get("ok") is not True:
+                    print("ACK inconclusivo: journal preservado para reconciliação de lease.")
             except Exception:
                 print("ERRO: não foi possível confirmar a conclusão. A fila recuperará o lease.")
         except KeyboardInterrupt:
