@@ -1,5 +1,19 @@
 # ORQUESTRA CLI · Hermes Kanban com Codex (piloto local)
 
+## Abrir com dois cliques no Windows (recomendado)
+
+**Sem copiar comandos:** baixe o ZIP da branch experimental em
+https://github.com/andreydecorvital-sudo/orquestra-dev/archive/refs/heads/feat/hermes-kanban-orquestra-cli-20261015.zip
+e escolha **Extrair tudo** no Windows. Dentro da pasta extraida, abra **`ABRIR-ORQUESTRA.cmd`** com dois cliques.
+
+O menu apresenta **Configurar instalacao**, **Conectar contas**, **Iniciar motor**, **Nova missao**, **Acompanhar tarefas / Kanban** e **Diagnostico**. O instalador guiado abre as paginas oficiais de downloads ausentes, pergunta antes de instalar Codex/Gemini por npm e antes de clonar os repositorios privados. Nao solicita senha, token nem chave de API e nao modifica configuracoes de sistema permanentemente. Precisa concluir manualmente o login nos provedores oficiais na primeira vez.
+
+Os projetos sao procurados ao lado da pasta Orquestra se ja existirem; caso contrario, em `%USERPROFILE%\Projetos`. Um caminho explicito `ORQUESTRA_PROJECTS_HOME` e respeitado. A operacao do console nao depende de Vercel/Supabase.
+
+Use **Iniciar motor Hermes** antes de enviar missoes e mantenha a janela do gateway aberta. O menu abre **hermes dashboard** para consultar o Kanban visual no navegador local. Evite iniciar dois gateways ao mesmo tempo.
+
+> Este e um piloto; os testes de sintaxe no Windows e o CI nao validam os logins reais nem garantem que os trabalhadores concluam tarefas. Todas as missoes geradas sao investigacoes; nenhuma acao em producao e autorizada.
+
 Este iniciador **não substitui** a fila Supabase anterior nem libera qualquer produção. É um modo adicional que usa o dispatcher nativo do Hermes e não necessita de Vercel/Supabase para criar tarefas na máquina local.
 
 ## Pré-requisitos
