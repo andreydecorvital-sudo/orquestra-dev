@@ -17,6 +17,8 @@ import threading
 from typing import Any
 
 from orchestration.quality import QualityError, inspect_worktree
+from orchestration.mission_loop import MissionQualityExhausted, repair_failed_quality
+from orchestration.autonomy import decide_action
 
 API_ENV = {
     "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CODEX_API_KEY",
@@ -143,6 +145,11 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
                                cwd=str(repo), text=True, capture_output=True, shell=False, timeout=40)
             if p.returncode:
                 raise GatewayError("Não foi possível preparar worktree isolado")
+            decision = decide_action("edit_isolated_worktree",
+                                     authorized_project=job["project"] in projects,
+                                     isolated_environment=worktree.is_dir())
+            if not decision.may_execute:
+                raise GatewayError("Política de autonomia bloqueou edição isolada")
             # No automatic push/merge/deploy; detached worktree is preserved only as a patch.
             stages = []
             if job["provider"] in {"claude", "joint"}:
@@ -185,10 +192,58 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
             except OSError:
                 pass
             # Preserve source changes BEFORE QA and Claude review: neither can erase work.
+            def checkpoint_repair() -> None:
+                """Persist each correction before the next verification."""
+                nonlocal patch, patch_oversize
+                tracked = subprocess.run(["git", "add", "-N", "--", "."], cwd=str(worktree),
+                                         capture_output=True, text=True, timeout=20, shell=False)
+                if tracked.returncode:
+                    raise GatewayError("Falha ao registrar novos arquivos da correção")
+                latest = subprocess.run(["git", "diff", "--binary", "HEAD"], cwd=str(worktree),
+                                        capture_output=True, text=True, timeout=20, shell=False)
+                if latest.returncode:
+                    raise GatewayError("Falha ao recuperar patch da correção")
+                candidate = latest.stdout
+                if not candidate.strip():
+                    raise GatewayError("Correção removeu todas as alterações; checagem manual necessária")
+                if re.search(r"(?:sk-(?:proj-|ant-)|gh[pousr]_|github_pat_|BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY)", candidate, re.I):
+                    raise GatewayError("Patch de correção contém possível credencial")
+                patch_path.write_text(candidate, encoding="utf-8")
+                patch = candidate
+                patch_oversize = len(patch.encode("utf-8")) > 40000
+
+            def repair_step(reason: str, attempt: int) -> None:
+                decision = decide_action("repair_isolated_worktree",
+                                         authorized_project=job["project"] in projects,
+                                         isolated_environment=worktree.is_dir())
+                if not decision.may_execute:
+                    raise GatewayError("Política de autonomia não permite correção isolada")
+                instruction = (
+                    "Corrija SOMENTE o erro objetivo do verificador local abaixo, "
+                    "neste worktree autorizado. Não faça push, merge, deploy, instalação "
+                    "remota, alterações externas ou uso de credenciais. Preserve o objetivo original.\n"
+                    "Erro do verificador: " + reason + "\n\n"
+                    "Objetivo: " + job["prompt"]
+                )
+                reply = cli("codex", instruction, worktree)
+                stages.append({"role": "codex", "step": "autonomous_repair_" + str(attempt),
+                               "result": reply["output"][-4000:]})
+
             try:
-                quality = inspect_worktree(worktree)
-            except QualityError as exc:
-                raise GatewayError("Quality gate bloqueou entrega; patch local preservado: " + str(exc)) from exc
+                verification = repair_failed_quality(
+                    verify=lambda: inspect_worktree(worktree),
+                    repair=repair_step,
+                    checkpoint=checkpoint_repair,
+                    max_repairs=2 if job["provider"] in {"codex", "joint"} else 0,
+                )
+                quality = verification["quality"]
+                if verification["repairs"]:
+                    refreshed = subprocess.run(["git", "status", "--short"], cwd=str(worktree),
+                                               capture_output=True, text=True, timeout=20, shell=False)
+                    changed = refreshed
+                quality["autonomous_repairs"] = verification["repairs"]
+            except (QualityError, MissionQualityExhausted) as exc:
+                raise GatewayError("Quality gate bloqueou entrega após correções; patch local preservado: " + str(exc)) from exc
             if job["provider"] == "joint":
                 review_prompt = ("Revise sem editar este trabalho em relação aos critérios. "
                                  "Aponte erros e melhorias. Não declare testes que não foram executados."
