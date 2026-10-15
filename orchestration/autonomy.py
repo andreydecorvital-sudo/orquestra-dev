@@ -51,8 +51,8 @@ class AutonomyDecision:
 def decide_action(
     action: str,
     *,
-    authorized_project: bool = True,
-    isolated_environment: bool = True,
+    authorized_project: bool,
+    isolated_environment: bool,
     elevated_risk: bool = False,
 ) -> AutonomyDecision:
     """Fail closed on unknown actions or unsafe contexts.
