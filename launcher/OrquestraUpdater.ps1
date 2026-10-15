@@ -77,9 +77,10 @@ function Test-ExcludedUpdatePath([string]$RelativePath) {
 }
 
 function Copy-UpdateFiles([string]$SourceRoot, [string]$TargetRoot) {
-  $sourceFull = (Resolve-Path -LiteralPath $SourceRoot).Path
+  $sourceFull = [IO.Path]::GetFullPath($SourceRoot)
   $sourcePrefix = $sourceFull
-  if (-not $sourcePrefix.EndsWith([string][IO.Path]::DirectorySeparatorChar)) { $sourcePrefix += [IO.Path]::DirectorySeparatorChar }
+  if (-not $sourcePrefix.EndsWith('\')) { $sourcePrefix += '\' }
+  $sourceUri = [System.Uri]$sourcePrefix
   $targetFull = [IO.Path]::GetFullPath($TargetRoot)
   if (-not (Test-Path -LiteralPath $targetFull -PathType Container)) {
     New-Item -ItemType Directory -Force -Path $targetFull | Out-Null
@@ -90,7 +91,8 @@ function Copy-UpdateFiles([string]$SourceRoot, [string]$TargetRoot) {
     $sourceFiles = @(Get-ChildItem -LiteralPath $sourceFull -File -Recurse -Force)
     if ($sourceFiles.Count -eq 0) { throw 'O pacote de atualização não contém arquivos.' }
     foreach ($file in $sourceFiles) {
-      $relative = $file.FullName.Substring($sourcePrefix.Length)
+      $relativeUri = $sourceUri.MakeRelativeUri([System.Uri]$file.FullName)
+      $relative = [System.Uri]::UnescapeDataString($relativeUri.ToString()).Replace('/', '\')
       if (Test-ExcludedUpdatePath $relative) { continue }
       $destination = Join-Path $targetFull $relative
       if (Test-Path -LiteralPath $destination -PathType Container) {
