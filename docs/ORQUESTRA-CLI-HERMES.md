@@ -10,6 +10,21 @@ O menu apresenta **Configurar instalacao**, **Conectar contas**, **Iniciar motor
 
 Os projetos sao procurados ao lado da pasta Orquestra se ja existirem; caso contrario, em `%USERPROFILE%\Projetos`. Um caminho explicito `ORQUESTRA_PROJECTS_HOME` e respeitado. A operacao do console nao depende de Vercel/Supabase.
 
+## Atualizacao automatica da Orquestra
+
+O `ABRIR-ORQUESTRA.cmd` consulta o canal experimental deste repositorio no GitHub sempre que a Orquestra inicia. Se houver um commit novo, baixa o pacote por HTTPS, valida a estrutura, atualiza os arquivos do app e registra o commit instalado. **Nao precisa baixar outro ZIP a cada mudanca minha**: depois de instalar uma vez esta versao com o atualizador, as proximas alteracoes publicadas neste canal chegam no proximo inicio da Orquestra.
+
+- Atualiza somente arquivos presentes no pacote do repositorio; nao apaga arquivos locais desconhecidos.
+- Preserva `.env`, configuracoes locais de worker, arquivos de configuracao ignorados pelo Git, pastas de dados/projetos/logs e logs de execucao.
+- Se o download, a validacao ou a copia falhar, mantem os arquivos existentes e permite abrir o menu. O log tecnico fica em `%LOCALAPPDATA%\Orquestra\logs\updater.log`.
+- O menu tambem tem **8 - Verificar/instalar atualizacoes**, que reinicia a Orquestra quando aplica uma versao nova.
+- O atualizador nao exige token do GitHub nem instala dependencias automaticamente.
+
+**Primeira instalacao:** como a pasta ja instalada ainda nao contem o atualizador, baixe e extraia o ZIP atualizado uma ultima vez, em uma pasta nova, e passe a abrir sempre o `ABRIR-ORQUESTRA.cmd` dessa pasta. Depois disso, a verificacao ocorre sozinha em cada abertura.
+
+**Canal atual:** branch experimental `feat/hermes-kanban-orquestra-cli-20261015`, nao a `main`. Assim, as mudancas que eu fizer nesse canal podem chegar automaticamente sem esperar merge. Isso tambem significa que este canal e de piloto; atualizacoes sao aplicadas automaticamente no proximo inicio. Nao ha alteracoes remotas no seu PC enquanto a Orquestra estiver fechada, e o atualizador nao reinicia sessoes ja abertas.
+
+
 Use **Iniciar motor Hermes** antes de enviar missoes e mantenha a janela do gateway aberta. O menu abre **hermes dashboard** para consultar o Kanban visual no navegador local. Evite iniciar dois gateways ao mesmo tempo.
 
 > Este e um piloto; os testes de sintaxe no Windows e o CI nao validam os logins reais nem garantem que os trabalhadores concluam tarefas. Todas as missoes geradas sao investigacoes; nenhuma acao em producao e autorizada.
