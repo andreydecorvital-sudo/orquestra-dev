@@ -8,6 +8,12 @@ Consulte `docs/ORQUESTRA-CLI-HERMES.md`: `ORQUESTRA.cmd equipe argoplace "TAREFA
 
 **Grokbot** é tratado como assinatura à parte. O produto Grok Bot possui seu próprio computador em nuvem; isso não é automaticamente o OAuth do Grok para Hermes. Não ativar nem cobrar APIs do xAI sem testar direito de acesso.
 
+## Atualizacao automatica do launcher Windows
+
+A branch experimental do launcher inclui `launcher/OrquestraUpdater.ps1`. Ao abrir `ABRIR-ORQUESTRA.cmd`, verifica o commit mais recente no canal GitHub, baixa por HTTPS e atualiza arquivos da aplicacao quando necessario. O menu tem tambem **8 - Verificar/instalar atualizacoes**. Mantem configuracoes locais e nao precisa de token GitHub. Falhas de rede nao bloqueiam o launcher; detalhes ficam em `%LOCALAPPDATA%\Orquestra\logs\updater.log`.
+
+O atualizador acompanha `feat/hermes-kanban-orquestra-cli-20261015` (canal experimental), nao `main`. Para ativar, e necessario extrair uma vez o ZIP mais recente dessa branch; depois, os proximos commits do canal sao aplicados na proxima abertura.
+
 ## O que existe AGORA, sem marketing
 
 | Recurso | Código | Remoto em produção |
