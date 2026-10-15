@@ -1,6 +1,12 @@
 # Orquestra Dev v1.0 — conectores e fila durável
 
-**Produto independente** para tarefas de desenvolvimento coordenadas com identidades Lelouch/Nagi e uso de Codex + Claude Code **por login da assinatura**, não por API keys pagas desses provedores. A interface é simples, preta/branca/vermelha. Hermes ficará como executor/coordenador opcional de procedimentos, mas **não há integração real de Hermes nesta versão**.
+**Produto independente** para tarefas de desenvolvimento coordenadas com identidades Lelouch/Nagi. **Piloto novo:** Gemini CLI com login Google + Codex com login ChatGPT via Hermes Kanban local, sem API paga obrigatória; Claude não entra nesta fase. O painel/worker legado continua separado até migração validada. A interface é simples, preta/branca/vermelha. Hermes ficará como executor/coordenador opcional de procedimentos, mas **não há integração real de Hermes nesta versão**.
+
+## Piloto de terminal (branch experimental)
+
+Consulte `docs/ORQUESTRA-CLI-HERMES.md`: `ORQUESTRA.cmd equipe argoplace "TAREFA"` faz Gemini CLI planejar por login Google, então cria um card Hermes Kanban para Nagi/Codex. O Google CLI recebe apenas política do projeto e descrição da missão; não recebe diretórios de código. Use um terminal separado com `ORQUESTRA.cmd gateway` para despacho. Este fluxo ainda precisa de validação real no Windows.
+
+**Grokbot** é tratado como assinatura à parte. O produto Grok Bot possui seu próprio computador em nuvem; isso não é automaticamente o OAuth do Grok para Hermes. Não ativar nem cobrar APIs do xAI sem testar direito de acesso.
 
 ## O que existe AGORA, sem marketing
 
