@@ -21,6 +21,9 @@ jobs:
             exit 1
           }
           Write-Host 'Launcher PowerShell syntax valid'
+      - name: Execute real PowerShell mission-forwarding self-test
+        shell: powershell
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/OrquestraMenu.ps1 -SelfTest
       - name: Verify batch wrapper references menu
         shell: powershell
         run: |
