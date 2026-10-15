@@ -16,6 +16,7 @@ function Write-Event([string]$step,[string]$state) {
   $state = $state -replace '[^a-zA-Z0-9_-]','_'
   try { Add-Content -LiteralPath (Join-Path $script:RunLog 'status.log') -Encoding UTF8 -Value "$(Get-Date -Format o) | $step | $state" } catch {}
 }
+. (Join-Path $PSScriptRoot 'OperaLogin.ps1')
 function Submit-Mission([string]$mode,[string]$project,[string]$task) {
   Invoke-Orquestra -argsList @($mode,$project,$task)
 }
@@ -91,30 +92,21 @@ function Setup {
 }
 function Logins {
   Header
-  Write-Host '1 - Entrar com ChatGPT no Codex'
+  Write-Host '1 - Entrar com ChatGPT no Codex (Opera)'
   Write-Host '2 - Entrar com conta Google no Gemini'
-  Write-Host '3 - Configurar login ChatGPT/Codex do Hermes Nagi'
+  Write-Host '3 - Conectar Hermes Nagi ao ChatGPT (Opera)'
   Write-Host '4 - Habilitar Codex runtime no Hermes Nagi'
   Write-Host '0 - Voltar'
   $opt = Read-Host 'Opcao'
   switch ($opt) {
-    '1' {
-      if (Has 'codex') { & codex login }
-      else { Write-Host 'Instale Codex primeiro.' -ForegroundColor Yellow }
-    }
+    '1' { Login-CodexOpera }
     '2' {
       if (Has 'gemini') {
         Write-Host 'Selecione Sign in with Google. Saia do Gemini apos autenticar.' -ForegroundColor Gray
         & gemini
       } else { Write-Host 'Instale Gemini primeiro.' -ForegroundColor Yellow }
     }
-    '3' {
-      if (Has 'hermes') {
-        & hermes profile show nagi *> $null
-        if ($LASTEXITCODE -ne 0) { & hermes profile create nagi }
-        & hermes -p nagi model
-      } else { Write-Host 'Instale Hermes primeiro.' -ForegroundColor Yellow }
-    }
+    '3' { Login-HermesOpera }
     '4' {
       if ((Has 'hermes') -and (Has 'codex')) {
         Write-Host 'Abrindo Hermes Nagi para ativar o runtime oficial. Digite /codex-runtime codex_app_server e reinicie a sessao.' -ForegroundColor Gray
@@ -199,7 +191,25 @@ if ($SelfTest) {
   if ($script:Forwarded.Count -ne 2 -or $script:Forwarded[1] -ne 'origin') {
     throw 'Falha no encaminhamento do status de projeto'
   }
-  Write-Host 'OK: encaminhamento das tarefas e consulta de status'
+  # Verify that login flow selects an Opera binary and device auth without launching any browser.
+  $script:FakeOperaOpened = $null
+  $script:FakeCodexInvoked = $false
+  function Get-OperaPath { return 'C:\TestOpera\opera.exe' }
+  function Open-OperaDeviceLogin([string]$operaExe) {
+    $script:FakeOperaOpened = $operaExe
+    return $true
+  }
+  function Invoke-CodexDeviceLogin {
+    $script:FakeCodexInvoked = $true
+    return 0
+  }
+  function Has([string]$name) { return $true }
+  Login-CodexOpera
+  if (-not $script:FakeCodexInvoked -or
+      $script:FakeOperaOpened -ne 'C:\TestOpera\opera.exe') {
+    throw 'Falha no login Codex via Opera'
+  }
+  Write-Host 'OK: encaminhamento das tarefas, status e login Opera/Codex'
   exit 0
 }
 if ($env:ORQUESTRA_PROJECTS_HOME) {
