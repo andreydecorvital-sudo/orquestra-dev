@@ -16,6 +16,20 @@ Use **Iniciar motor Hermes** antes de enviar missoes e mantenha a janela do gate
 
 Este iniciador **não substitui** a fila Supabase anterior nem libera qualquer produção. É um modo adicional que usa o dispatcher nativo do Hermes e não necessita de Vercel/Supabase para criar tarefas na máquina local.
 
+## Login por codigo: corrigido quando Opera abre sem codigo
+
+Se o Opera exibir **"Use o seu codigo do aparelho"** mas nenhum codigo apareceu, nao aguarde: o fluxo anterior abria a pagina antes de gerar o codigo, deixando o usuario sem o que informar.
+
+A versao corrigida faz:
+
+1. Menu **2 Conectar contas** > **1 ChatGPT/Codex no Opera**, ou **3 Hermes Nagi no Opera**.
+2. Abre uma **NOVA janela preta CMD** com o comando oficial `codex login --device-auth` ou `hermes -p nagi auth add openai-codex --type oauth`.
+3. **Aguarde o codigo de 9 caracteres na nova janela.** Se nao aparecer, a janela mantem a mensagem de erro visivel. Nao compartilhe codigos de login.
+4. Volte ao menu da Orquestra: responda **S** a "O codigo apareceu?" SOMENTE quando estiver visivel. A Orquestra entao abre a pagina oficial no Opera para inserir o codigo.
+5. Autorize no Opera e confira na janela CMD se houve confirmacao. Se nao houver codigo, responda **N** e envie apenas o texto do erro (oculte tokens).
+
+**Importante:** existem logins diferentes para Codex CLI e Hermes; se ambos precisarem de autorizacao, cada um gera seu proprio codigo. Nao se usa o codigo de uma sessao na outra. O login depende de habilitacao do recurso de codigo de dispositivo na sua conta.
+
 ## Login ChatGPT exclusivamente no Opera (Windows)
 
 O menu **2 - Conectar contas** oferece as opcoes:
