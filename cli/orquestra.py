@@ -82,7 +82,7 @@ def setup() -> None:
         ensure_board(slug, display_name)
     profile = hermes("profile", "show", PROFILE, checked=False)
     if profile.returncode:
-        hermes("profile", "create", PROFILE, "--description", "Codex coding and repository investigation in isolated worktrees")
+        hermes("profile", "create", PROFILE)
         print("Perfil 'nagi' criado, mas ainda precisa de login/modelo.")
     print("\nProximos passos no CMD:")
     print("  hermes -p nagi model        (selecione ChatGPT/Codex Subscription)")
