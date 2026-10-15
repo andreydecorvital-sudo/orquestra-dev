@@ -131,8 +131,6 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
         raise GatewayError("Projeto não autorizado no runner")
     if not cfg.get("allow_execution", False):
         raise GatewayError("Execução desativada na configuração; autorize no runner local")
-    if not decide_action("edit_isolated_worktree").may_execute:
-        raise GatewayError("Política de autonomia bloqueou edição em worktree isolado")
     if billing_keys_present():
         raise GatewayError("Variáveis de API pagas presentes no host; remova-as antes de executar: " + ", ".join(billing_keys_present()))
     if not _LOCK.acquire(blocking=False):
@@ -147,6 +145,11 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
                                cwd=str(repo), text=True, capture_output=True, shell=False, timeout=40)
             if p.returncode:
                 raise GatewayError("Não foi possível preparar worktree isolado")
+            decision = decide_action("edit_isolated_worktree",
+                                     authorized_project=job["project"] in projects,
+                                     isolated_environment=worktree.is_dir())
+            if not decision.may_execute:
+                raise GatewayError("Política de autonomia bloqueou edição isolada")
             # No automatic push/merge/deploy; detached worktree is preserved only as a patch.
             stages = []
             if job["provider"] in {"claude", "joint"}:
@@ -210,7 +213,9 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
                 patch_oversize = len(patch.encode("utf-8")) > 40000
 
             def repair_step(reason: str, attempt: int) -> None:
-                decision = decide_action("repair_isolated_worktree")
+                decision = decide_action("repair_isolated_worktree",
+                                         authorized_project=job["project"] in projects,
+                                         isolated_environment=worktree.is_dir())
                 if not decision.may_execute:
                     raise GatewayError("Política de autonomia não permite correção isolada")
                 instruction = (
