@@ -33,7 +33,7 @@ function Write-UpdateLog([string]$Message) {
 }
 
 function Get-InstallKey([string]$Path) {
-  $normalized = [IO.Path]::GetFullPath($Path).TrimEnd('\','/').ToLowerInvariant()
+  $normalized = [IO.Path]::GetFullPath($Path).TrimEnd([char[]]@([char]92,[char]47)).ToLowerInvariant()
   $sha = [Security.Cryptography.SHA256]::Create()
   try {
     $bytes = $sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($normalized))
@@ -61,7 +61,7 @@ function Write-UpdateNotice([string]$Message) {
 
 function Test-ExcludedUpdatePath([string]$RelativePath) {
   $normalized = $RelativePath.Replace('/', '\')
-  $parts = $normalized -split '\\'
+  $parts = $normalized.Split([char]92)
   $excludedDirectories = @('.git','.venv','venv','node_modules','__pycache__','.pytest_cache','.mypy_cache','data','logs','projects','dist','build')
   foreach ($part in $parts) {
     if ($excludedDirectories -contains $part) { return $true }
@@ -76,8 +76,8 @@ function Test-ExcludedUpdatePath([string]$RelativePath) {
 }
 
 function Copy-UpdateFiles([string]$SourceRoot, [string]$TargetRoot) {
-  $sourceFull = (Resolve-Path -LiteralPath $SourceRoot).Path.TrimEnd('\','/')
-  $targetFull = [IO.Path]::GetFullPath($TargetRoot).TrimEnd('\','/')
+  $sourceFull = (Resolve-Path -LiteralPath $SourceRoot).Path.TrimEnd([char[]]@([char]92,[char]47))
+  $targetFull = [IO.Path]::GetFullPath($TargetRoot).TrimEnd([char[]]@([char]92,[char]47))
   if (-not (Test-Path -LiteralPath $targetFull -PathType Container)) {
     New-Item -ItemType Directory -Force -Path $targetFull | Out-Null
   }
@@ -87,7 +87,7 @@ function Copy-UpdateFiles([string]$SourceRoot, [string]$TargetRoot) {
     $sourceFiles = @(Get-ChildItem -LiteralPath $sourceFull -File -Recurse -Force)
     if ($sourceFiles.Count -eq 0) { throw 'O pacote de atualização não contém arquivos.' }
     foreach ($file in $sourceFiles) {
-      $relative = $file.FullName.Substring($sourceFull.Length).TrimStart('\','/')
+      $relative = $file.FullName.Substring($sourceFull.Length).TrimStart([char[]]@([char]92,[char]47))
       if (Test-ExcludedUpdatePath $relative) { continue }
       $destination = Join-Path $targetFull $relative
       if (Test-Path -LiteralPath $destination -PathType Container) {
@@ -158,7 +158,7 @@ function Invoke-SelfTest {
     Set-Content -LiteralPath (Join-Path $target 'logs\app.log') -Value 'keep-local-log' -Encoding UTF8
     Copy-UpdateFiles -SourceRoot $source -TargetRoot $target
     if ((Get-Content -LiteralPath (Join-Path $target 'launcher\OrquestraMenu.ps1') -Raw).Trim() -ne 'new-version') {
-      throw 'O self-test não atualizou o arquivo de aplicação.'
+      throw ('O self-test não atualizou o arquivo de aplicação. Conteúdo=' + (Get-Content -LiteralPath (Join-Path $target 'launcher\OrquestraMenu.ps1') -Raw) + '; arquivos=' + ((Get-ChildItem -LiteralPath $target -Recurse -File | ForEach-Object { $_.FullName }) -join ', '))
     }
     if ((Get-Content -LiteralPath (Join-Path $target '.env') -Raw).Trim() -ne 'keep-local-secret') {
       throw 'O self-test detectou alteração indevida de .env local.'
