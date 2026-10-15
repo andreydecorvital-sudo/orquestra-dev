@@ -191,25 +191,35 @@ if ($SelfTest) {
   if ($script:Forwarded.Count -ne 2 -or $script:Forwarded[1] -ne 'origin') {
     throw 'Falha no encaminhamento do status de projeto'
   }
-  # Verify that login flow selects an Opera binary and device auth without launching any browser.
-  $script:FakeOperaOpened = $null
-  $script:FakeCodexInvoked = $false
+  # Device auth requires a visible terminal *before* Opera opens.
+  $script:FakeConsoleStarted = $false
+  $script:FakeOperaOpened = $false
+  $script:FakeCodeShown = $true
   function Get-OperaPath { return 'C:\TestOpera\opera.exe' }
-  function Open-OperaDeviceLogin([string]$operaExe) {
-    $script:FakeOperaOpened = $operaExe
+  function Start-DeviceLoginConsole([string]$scriptFile) {
+    if ($scriptFile -ne 'LOGIN-CODEX.cmd') { throw 'Wrong device login launcher' }
+    $script:FakeConsoleStarted = $true
     return $true
   }
-  function Invoke-CodexDeviceLogin {
-    $script:FakeCodexInvoked = $true
-    return 0
+  function Open-OperaDeviceLogin([string]$operaExe) {
+    if (-not $script:FakeConsoleStarted) { throw 'Opera opened BEFORE CLI code was generated' }
+    $script:FakeOperaOpened = $true
+    return $true
+  }
+  function Read-Host([string]$prompt) {
+    if ($script:FakeCodeShown) { return 'S' }
+    return 'N'
   }
   function Has([string]$name) { return $true }
   Login-CodexOpera
-  if (-not $script:FakeCodexInvoked -or
-      $script:FakeOperaOpened -ne 'C:\TestOpera\opera.exe') {
-    throw 'Falha no login Codex via Opera'
+  if (-not $script:FakeConsoleStarted -or -not $script:FakeOperaOpened) {
+    throw 'Falha no fluxo de login Codex pelo Opera apos codigo'
   }
-  Write-Host 'OK: encaminhamento das tarefas, status e login Opera/Codex'
+  $script:FakeOperaOpened = $false
+  $script:FakeCodeShown = $false
+  Login-CodexOpera
+  if ($script:FakeOperaOpened) { throw 'Opera opened without generated code' }
+  Write-Host 'OK: menu, terminal de login e Opera aberto somente apos codigo'
   exit 0
 }
 if ($env:ORQUESTRA_PROJECTS_HOME) {
