@@ -136,11 +136,14 @@ class MissionJournal:
         raw = result.get("artifact_path")
         if not isinstance(raw, str):
             raise MissionJournalBlocked("Execução não produziu patch persistido")
-        path = pathlib.Path(raw).resolve()
+        candidate = pathlib.Path(raw)
+        if not candidate.is_absolute() or candidate.is_symlink():
+            raise MissionJournalBlocked("Caminho do patch ausente, relativo ou simbólico")
+        path = candidate.resolve()
         if not path.is_relative_to(self.artifacts_root):
             raise MissionJournalBlocked("Patch fora do armazenamento autorizado")
-        if not path.is_file() or path.is_symlink():
-            raise MissionJournalBlocked("Patch ausente ou simbólico")
+        if not path.is_file() or path.stat().st_size > 10_000_000:
+            raise MissionJournalBlocked("Patch ausente ou maior que o limite de 10 MB")
         if not isinstance(output, str) or not output or len(output) > 18000:
             raise MissionJournalBlocked("Resumo inválido")
         proof = {"path": str(path),
