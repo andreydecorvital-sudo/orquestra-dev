@@ -37,7 +37,12 @@ jobs:
         run: |
           $login = Get-Content launcher/OperaLogin.ps1 -Raw
           $menu = Get-Content launcher/OrquestraMenu.ps1 -Raw
-          if ($login -notmatch 'codex login --device-auth') { throw 'Codex device auth missing' }
+          $codex = Get-Content launcher/LOGIN-CODEX.cmd -Raw
+          $hermes = Get-Content launcher/LOGIN-HERMES.cmd -Raw
+          if ($codex -notmatch 'codex login --device-auth') { throw 'Codex device auth command missing from terminal' }
+          if ($hermes -notmatch 'hermes -p nagi auth add openai-codex --type oauth') { throw 'Hermes device auth command missing from terminal' }
+          if ($login -notmatch 'Start-DeviceLoginConsole') { throw 'Real interactive terminal not launched first' }
+          if ($login -notmatch 'Prompt-AfterCode') { throw 'Missing code confirmation gate before Opera opens' }
           if ($login -notmatch 'Start-Process -FilePath \$operaExe') { throw 'Opera launcher missing' }
           if ($login -notmatch 'auth.codex_login_flow device_code') { throw 'Hermes forced device flow missing' }
           if ($menu -notmatch 'Login-CodexOpera' -or $menu -notmatch 'Login-HermesOpera') { throw 'Login menu is not connected to Opera' }
