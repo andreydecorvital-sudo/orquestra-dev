@@ -28,7 +28,16 @@ jobs:
             $operaErrors | ForEach-Object { Write-Error $_.Message }
             exit 1
           }
-          Write-Host 'Launcher and Opera login PowerShell syntax valid'
+          $updaterTokens = $null
+          $updaterErrors = $null
+          $updaterScript = Join-Path $env:GITHUB_WORKSPACE 'launcher\OrquestraUpdater.ps1'
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($updaterScript, [ref]$updaterTokens, [ref]$updaterErrors)
+          if ($updaterErrors.Count -gt 0) {
+            $updaterErrors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          Write-Host 'Launcher, Opera login and updater PowerShell syntax valid'
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/OrquestraUpdater.ps1 -SelfTest
       - name: Execute real PowerShell mission-forwarding self-test
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/OrquestraMenu.ps1 -SelfTest
@@ -50,6 +59,8 @@ jobs:
         shell: powershell
         run: |
           $launcher = Get-Content ABRIR-ORQUESTRA.cmd -Raw
+          if ($launcher -notmatch 'launcher\\OrquestraUpdater.ps1') { throw 'Auto updater missing from double click entrypoint' }
+          if ($launcher -notmatch 'OrquestraUpdater.ps1.*-Quiet') { throw 'Automatic update check must run quietly before menu' }
           if ($launcher -notmatch 'launcher\\OrquestraMenu.ps1') { throw 'Menu missing from double click entrypoint' }
       - name: Verify Python CLI syntax
         run: python -m compileall -q cli
