@@ -20,10 +20,27 @@ jobs:
             $errors | ForEach-Object { Write-Error $_.Message }
             exit 1
           }
-          Write-Host 'Launcher PowerShell syntax valid'
+          $operaTokens = $null
+          $operaErrors = $null
+          $operaScript = Join-Path $env:GITHUB_WORKSPACE 'launcher\OperaLogin.ps1'
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($operaScript, [ref]$operaTokens, [ref]$operaErrors)
+          if ($operaErrors.Count -gt 0) {
+            $operaErrors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          Write-Host 'Launcher and Opera login PowerShell syntax valid'
       - name: Execute real PowerShell mission-forwarding self-test
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/OrquestraMenu.ps1 -SelfTest
+      - name: Validate Opera-only ChatGPT device auth contract
+        shell: powershell
+        run: |
+          $login = Get-Content launcher/OperaLogin.ps1 -Raw
+          $menu = Get-Content launcher/OrquestraMenu.ps1 -Raw
+          if ($login -notmatch 'codex login --device-auth') { throw 'Codex device auth missing' }
+          if ($login -notmatch 'Start-Process -FilePath \$operaExe') { throw 'Opera launcher missing' }
+          if ($login -notmatch 'auth.codex_login_flow device_code') { throw 'Hermes forced device flow missing' }
+          if ($menu -notmatch 'Login-CodexOpera' -or $menu -notmatch 'Login-HermesOpera') { throw 'Login menu is not connected to Opera' }
       - name: Verify batch wrapper references menu
         shell: powershell
         run: |
