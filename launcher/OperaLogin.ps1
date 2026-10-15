@@ -60,24 +60,46 @@ function Open-OperaDeviceLogin([string]$operaExe) {
   return $true
 }
 
-function Invoke-CodexDeviceLogin {
-  & codex login --device-auth
-  return $LASTEXITCODE
+
+function Start-DeviceLoginConsole([string]$scriptFile) {
+  $file = Join-Path $PSScriptRoot $scriptFile
+  if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+    throw "Arquivo do iniciador ausente: $scriptFile. Extraia o ZIP completo atualizado."
+  }
+  # The OAuth CLI must run in a visible, real interactive console. Never capture
+  # its stdout (the code is secret and needed directly by the account owner).
+  $command = 'call "' + $file + '"'
+  $process = Start-Process -FilePath 'cmd.exe' -ArgumentList @('/k', $command) -WorkingDirectory $PSScriptRoot -PassThru
+  return ($null -ne $process)
+}
+
+function Prompt-AfterCode([string]$toolName,[string]$operaExe) {
+  Write-Host ''
+  Write-Host "Uma NOVA janela do CMD foi aberta para $toolName." -ForegroundColor Cyan
+  Write-Host 'Aguarde ate ver o codigo de 9 caracteres naquela janela.' -ForegroundColor Gray
+  Write-Host 'Se nao aparecer, leia a mensagem de erro que aparecer no CMD.' -ForegroundColor Gray
+  $confirm = Read-Host 'O codigo apareceu na janela do CMD? (S/N)'
+  if ($confirm -notmatch '^[sS]') {
+    Write-Host 'Opera nao foi aberto: e necessario o Codex/Hermes gerar o codigo primeiro.' -ForegroundColor Yellow
+    Write-Host 'Se houve erro, envie somente a mensagem do terminal, escondendo qualquer codigo ou token.' -ForegroundColor Gray
+    Write-Event 'device_login' 'no_code'
+    return $false
+  }
+  return (Open-OperaDeviceLogin -operaExe $operaExe)
 }
 
 function Login-CodexOpera {
   if (-not (Has 'codex')) { Write-Host 'Instale Codex primeiro.' -ForegroundColor Yellow; return }
   $opera = Get-OperaPath
   if (-not $opera) { Write-Event 'codex_login' 'opera_absent'; return }
-  if (-not (Open-OperaDeviceLogin -operaExe $opera)) { return }
-  $result = Invoke-CodexDeviceLogin
-  if ($result -ne 0) {
-    Write-Event 'codex_login' 'failed'
-    Write-Host 'Login nao concluido. Ative login por codigo de dispositivo nas configuracoes de seguranca do ChatGPT, se necessario.' -ForegroundColor Yellow
-    Write-Host 'Nenhum Chrome ou API paga sera usado como fallback.' -ForegroundColor Yellow
-  } else {
-    Write-Event 'codex_login' 'ok'
-    Write-Host 'Login Codex concluido.' -ForegroundColor Green
+  if (-not (Start-DeviceLoginConsole -scriptFile 'LOGIN-CODEX.cmd')) {
+    Write-Event 'codex_login' 'console_failed'
+    return
+  }
+  if (Prompt-AfterCode -toolName 'Codex' -operaExe $opera) {
+    Write-Host 'Digite no Opera o codigo que aparece na NOVA janela do CMD.' -ForegroundColor Green
+    Write-Host 'Apos autorizar, confira o resultado na janela do Codex.' -ForegroundColor Gray
+    Write-Event 'codex_login' 'opera_opened'
   }
 }
 
@@ -90,21 +112,21 @@ function Login-HermesOpera {
     & hermes profile create nagi
     if ($LASTEXITCODE -ne 0) { Write-Host 'Nao foi possivel criar o perfil Nagi.' -ForegroundColor Yellow; return }
   }
-  # Force Hermes to use device login (browser/PKCE would open the Windows default).
+  # Hermes' documented default is device-code. Force it for this profile to
+  # avoid opening the Windows default browser (Chrome) accidentally.
   & hermes -p nagi config set auth.codex_login_flow device_code
   if ($LASTEXITCODE -ne 0) {
     Write-Event 'hermes_login' 'device_config_failed'
-    Write-Host 'Nao consegui selecionar login por codigo. Parei para nao abrir Chrome.' -ForegroundColor Yellow
+    Write-Host 'Nao consegui selecionar login por codigo no Hermes.' -ForegroundColor Yellow
     return
   }
-  if (-not (Open-OperaDeviceLogin -operaExe $opera)) { return }
-  & hermes -p nagi auth add openai-codex --type oauth
-  if ($LASTEXITCODE -ne 0) {
-    Write-Event 'hermes_login' 'failed'
-    Write-Host 'Login do Hermes nao concluido. Nenhuma chave de API paga foi utilizada.' -ForegroundColor Yellow
+  if (-not (Start-DeviceLoginConsole -scriptFile 'LOGIN-HERMES.cmd')) {
+    Write-Event 'hermes_login' 'console_failed'
     return
   }
-  Write-Event 'hermes_login' 'ok'
-  Write-Host 'Login Hermes concluido. Escolha modelo Codex; a autenticacao pode ser reutilizada.' -ForegroundColor Green
-  & hermes -p nagi model
+  if (Prompt-AfterCode -toolName 'Hermes Nagi' -operaExe $opera) {
+    Write-Host 'Digite no Opera o codigo que aparece na NOVA janela do CMD.' -ForegroundColor Green
+    Write-Host 'Apos autorizar, confira o resultado na janela do Hermes.' -ForegroundColor Gray
+    Write-Event 'hermes_login' 'opera_opened'
+  }
 }
