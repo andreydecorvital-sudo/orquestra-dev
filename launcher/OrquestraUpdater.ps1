@@ -33,7 +33,7 @@ function Write-UpdateLog([string]$Message) {
 }
 
 function Get-InstallKey([string]$Path) {
-  $normalized = [IO.Path]::GetFullPath($Path).TrimEnd([char[]]@([char]92,[char]47)).ToLowerInvariant()
+  $normalized = [IO.Path]::GetFullPath($Path).ToLowerInvariant()
   $sha = [Security.Cryptography.SHA256]::Create()
   try {
     $bytes = $sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($normalized))
@@ -77,8 +77,10 @@ function Test-ExcludedUpdatePath([string]$RelativePath) {
 }
 
 function Copy-UpdateFiles([string]$SourceRoot, [string]$TargetRoot) {
-  $sourceFull = (Resolve-Path -LiteralPath $SourceRoot).Path.TrimEnd([char[]]@([char]92,[char]47))
-  $targetFull = [IO.Path]::GetFullPath($TargetRoot).TrimEnd([char[]]@([char]92,[char]47))
+  $sourceFull = (Resolve-Path -LiteralPath $SourceRoot).Path
+  $sourcePrefix = $sourceFull
+  if (-not $sourcePrefix.EndsWith([string][IO.Path]::DirectorySeparatorChar)) { $sourcePrefix += [IO.Path]::DirectorySeparatorChar }
+  $targetFull = [IO.Path]::GetFullPath($TargetRoot)
   if (-not (Test-Path -LiteralPath $targetFull -PathType Container)) {
     New-Item -ItemType Directory -Force -Path $targetFull | Out-Null
   }
@@ -88,7 +90,7 @@ function Copy-UpdateFiles([string]$SourceRoot, [string]$TargetRoot) {
     $sourceFiles = @(Get-ChildItem -LiteralPath $sourceFull -File -Recurse -Force)
     if ($sourceFiles.Count -eq 0) { throw 'O pacote de atualização não contém arquivos.' }
     foreach ($file in $sourceFiles) {
-      $relative = $file.FullName.Substring($sourceFull.Length).TrimStart([char[]]@([char]92,[char]47))
+      $relative = $file.FullName.Substring($sourcePrefix.Length)
       if (Test-ExcludedUpdatePath $relative) { continue }
       $destination = Join-Path $targetFull $relative
       if (Test-Path -LiteralPath $destination -PathType Container) {
