@@ -27,6 +27,14 @@ function Header {
   Write-Host ' Gemini (Google) + Hermes + Codex (ChatGPT)' -ForegroundColor Gray
   Write-Host '====================================================' -ForegroundColor DarkGray
   Write-Host " Projetos: $env:ORQUESTRA_PROJECTS_HOME" -ForegroundColor DarkGray
+  $noticePath = if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA 'Orquestra\update-notice.txt' } else { Join-Path $env:USERPROFILE 'Orquestra\update-notice.txt' }
+  if (Test-Path -LiteralPath $noticePath -PathType Leaf) {
+    try {
+      $notice = (Get-Content -LiteralPath $noticePath -Raw -ErrorAction Stop).Trim()
+      Remove-Item -LiteralPath $noticePath -Force -ErrorAction SilentlyContinue
+      if ($notice) { Write-Host (" " + $notice) -ForegroundColor Green }
+    } catch {}
+  }
   Write-Host ''
 }
 function Invoke-Orquestra([string[]]$argsList) {
@@ -160,6 +168,28 @@ function Report {
   if ($a -match '^[sS]') { Start-Process -FilePath 'notepad.exe' -ArgumentList ('"' + $report + '"') }
   Pause-Menu
 }
+function Update-Orquestra {
+  Header
+  $updater = Join-Path $PSScriptRoot 'OrquestraUpdater.ps1'
+  if (-not (Test-Path -LiteralPath $updater -PathType Leaf)) {
+    Write-Host 'Atualizador ausente. Baixe uma vez o ZIP mais recente da Orquestra.' -ForegroundColor Yellow
+    Pause-Menu
+    return
+  }
+  & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $updater
+  $updateResult = $LASTEXITCODE
+  if ($updateResult -eq 10) {
+    Write-Host 'Atualizacao aplicada. Reiniciando a Orquestra para carregar a nova versao...' -ForegroundColor Green
+    Start-Sleep -Seconds 1
+    Start-Process -FilePath (Join-Path $root 'ABRIR-ORQUESTRA.cmd') -WorkingDirectory $root
+    exit
+  } elseif ($updateResult -eq 0) {
+    Write-Host 'Nenhuma atualizacao pendente.' -ForegroundColor Green
+  } else {
+    Write-Host 'A atualizacao falhou; a versao instalada foi mantida. Veja updater.log em %LOCALAPPDATA%\Orquestra\logs.' -ForegroundColor Yellow
+  }
+  Pause-Menu
+}
 function Board {
   Header
   Write-Host '1 - Consultar tarefas Argoplace'
@@ -241,6 +271,7 @@ while ($true) {
     Write-Host '5 - Acompanhar / Painel Kanban'
     Write-Host '6 - Diagnostico'
     Write-Host '7 - Salvar relatorio de erros'
+    Write-Host '8 - Verificar/instalar atualizacoes'
     Write-Host '0 - Sair'
     $choice = Read-Host 'Escolha'
     switch ($choice) {
@@ -251,6 +282,7 @@ while ($true) {
       '5' { Board }
       '6' { Header; Invoke-Orquestra -argsList @('doctor'); Pause-Menu }
       '7' { Report }
+      '8' { Update-Orquestra }
       '0' { break }
       default { Write-Host 'Opcao invalida.' -ForegroundColor Yellow; Pause-Menu }
     }
