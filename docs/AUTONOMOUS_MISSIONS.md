@@ -1,5 +1,18 @@
 # Autonomous Missions — autonomy by default, evidence before success
 
+## Cross-project loop contract
+
+The generic method is defined at
+`andreydecorvital-sudo/origin/docs/GOAL_LOOP_CONTRACT.md`
+(review PR: https://github.com/andreydecorvital-sudo/origin/pull/23).
+The Orquestra is the **owner of real code-execution loops**: repository
+allowlist, worker, lease, CLI session, code review and testing remain here.
+Origin does not become a dependency, an executor or a source of permissions.
+
+A human objective should drive all safe substeps without "próximo".
+The worker must never equate tool completion with goal satisfaction. Failure
+after a remote-side effect or uncertain lease must stop for reconciliation.
+
 ## User contract
 
 One objective is enough. Agents should infer *minor*, reversible details using
