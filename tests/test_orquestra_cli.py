@@ -66,4 +66,43 @@ class CliTests(unittest.TestCase):
             cli.call(["hermes","kanban","create","title; echo not-executed"])
             self.assertFalse(runner.call_args.kwargs["shell"])
 
+
+    def test_gemini_nonzero_stops_no_fallback(self):
+        with tempfile.TemporaryDirectory() as folder:
+            repo = pathlib.Path(folder)
+            (repo / "AGENTS.md").write_text("Read-only rules.", encoding="utf-8")
+            with patch.object(cli, "check_executable"), \
+                 patch.object(cli, "project_directory", return_value=repo), \
+                 patch.object(cli.subprocess, "run") as process:
+                process.return_value.returncode = 53
+                process.return_value.stdout = ""
+                with self.assertRaisesRegex(cli.CliError, "Gemini falhou"):
+                    cli.gemini_plan("argoplace", "Verificar módulo")
+                args = process.call_args.args[0]
+                self.assertEqual(args[0], "gemini")
+                self.assertIn("plan", args)
+                self.assertFalse(process.call_args.kwargs["shell"])
+                self.assertNotIn("GEMINI_API_KEY",process.call_args.kwargs["env"])
+
+    def test_gemini_handoff_to_hermes_nagi(self):
+        with tempfile.TemporaryDirectory() as folder:
+            repo = pathlib.Path(folder) / "vitalhub"
+            repo.mkdir()
+            (repo / ".git").mkdir()
+            target = pathlib.Path(folder) / "sandbox"
+            with patch.object(cli,"project_directory",return_value=repo), \
+                 patch.object(cli,"worktree_directory",return_value=target), \
+                 patch.object(cli,"check_executable"), \
+                 patch.object(cli,"ensure_profile_and_board"), \
+                 patch.object(cli,"gemini_plan",return_value="Plano Gemini: revisar rotas"), \
+                 patch.object(cli,"call") as git, \
+                 patch.object(cli,"create_task") as created:
+                git.return_value.returncode=0
+                cli.investigation("argoplace", "Investigar expedição", use_gemini=True)
+                body = created.call_args.args[2]
+                self.assertIn("Plano Gemini: revisar rotas", body)
+                self.assertIn("INVESTIGACAO APENAS", body)
+                self.assertEqual(created.call_args.args[0], "argoplace")
+
+
 if __name__ == '__main__': unittest.main()
