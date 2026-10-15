@@ -13,21 +13,25 @@ class ApprovalPolicyTests(unittest.TestCase):
                        "run_allowlisted_checks", "repair_isolated_worktree",
                        "save_local_patch", "produce_report"):
             with self.subTest(action=action):
-                self.assertTrue(decide_action(action).may_execute)
+                self.assertTrue(decide_action(action, authorized_project=True, isolated_environment=True).may_execute)
 
     def test_consequential_actions_require_approval(self):
         for action in ("deploy_production", "merge_pull_request", "modify_live_database",
                        "change_live_prices", "publish_live_listing", "issue_invoice",
                        "print_shipping_labels", "send_external_message", "spend_money"):
             with self.subTest(action=action):
-                self.assertEqual(decide_action(action).status, "approval_required")
+                self.assertEqual(decide_action(action, authorized_project=True, isolated_environment=True).status, "approval_required")
+
+    def test_requires_trusted_context(self):
+        with self.assertRaises(TypeError):
+            decide_action("read_repository")
 
     def test_unknown_and_unauthorized_fail_closed(self):
-        self.assertEqual(decide_action("run_any_shell_command").status, "blocked")
-        self.assertEqual(decide_action("read_repository", authorized_project=False).status, "blocked")
-        self.assertEqual(decide_action("repair_isolated_worktree", isolated_environment=False).status,
+        self.assertEqual(decide_action("run_any_shell_command", authorized_project=True, isolated_environment=True).status, "blocked")
+        self.assertEqual(decide_action("read_repository", authorized_project=False, isolated_environment=True).status, "blocked")
+        self.assertEqual(decide_action("repair_isolated_worktree", authorized_project=True, isolated_environment=False).status,
                          "approval_required")
-        self.assertEqual(decide_action("save_local_patch", elevated_risk=True).status,
+        self.assertEqual(decide_action("save_local_patch", authorized_project=True, isolated_environment=True, elevated_risk=True).status,
                          "approval_required")
 
 
