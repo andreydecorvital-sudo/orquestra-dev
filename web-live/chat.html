@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101115">
+  <title>Orquestra — Converse com sua equipe de IA</title>
+  <link rel="stylesheet" href="/chat.css">
+  <script src="/config.js"></script>
+  <script type="module" defer src="/chat.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brandrow"><span class="brand-mark" aria-hidden="true">◈</span><span>Orquestra</span><button type="button" class="icon-button mobile-close" id="closeMenu" aria-label="Fechar menu">×</button></div>
+    <button class="new-chat" id="newChat" type="button"><span>＋</span> Nova conversa</button>
+    <div class="section-label">PROJETO</div>
+    <div class="project-switch">
+      <label class="sr-only" for="projectSelect">Projeto</label>
+      <select id="projectSelect" aria-label="Projeto selecionado"><option value="">Carregando...</option></select>
+    </div>
+    <button class="small-action" id="addProject" type="button">＋ Adicionar projeto</button>
+    <div class="section-label">MISSÕES RECENTES</div>
+    <nav id="missionList" class="history" aria-label="Histórico de missões"><span class="muted">Entre para visualizar o histórico.</span></nav>
+    <div class="sidebar-footer">
+      <div class="status-dotline"><span id="executorDot" class="status-dot"></span><span id="executorLabel">Executor não conectado</span></div>
+      <p id="modelsLabel">IA multiagente: ainda não conectada.</p>
+      <a href="/" class="advanced-link">Painel avançado <span aria-hidden="true">↗</span></a>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <div class="top-title"><button class="icon-button menu-button" id="openMenu" type="button" aria-label="Abrir menu">☰</button><strong>Orquestra</strong><span class="top-tag">Workspace</span></div>
+      <div class="top-right"><span id="connectionStatus" class="connection">Verificando...</span><button id="signOut" class="text-button" type="button" hidden>Sair</button></div>
+    </header>
+    <main id="chatMain" class="chat-scroll" aria-live="polite">
+      <div id="welcome" class="welcome">
+        <div class="welcome-icon">◈</div>
+        <h1>O que vamos resolver?</h1>
+        <p>Descreva o objetivo. A Orquestra registra a missão, acompanha sua execução e mostra as evidências quando um executor autorizado terminar.</p>
+      </div>
+      <div id="messages" class="messages" aria-label="Conversa e andamento das missões"></div>
+    </main>
+    <section class="composer-wrap" aria-label="Nova solicitação">
+      <form id="composer" class="composer">
+        <label for="prompt" class="sr-only">Sua solicitação</label>
+        <textarea id="prompt" rows="2" maxlength="12000" placeholder="Descreva o que deseja investigar ou resolver..." required></textarea>
+        <div class="composer-bottom"><span id="composerHint" class="hint">Modo seguro: diagnóstico. Não modifica sistemas.</span><button type="submit" id="send" class="send" aria-label="Enviar missão" disabled>↑</button></div>
+      </form>
+      <p class="footnote">As IAs só executam quando seus provedores e um executor autorizado estiverem conectados. O chat não simula resultados.</p>
+      <p class="notice" id="notice" role="status" aria-live="polite"></p>
+    </section>
+  </div>
+</div>
+<div id="authOverlay" class="overlay" hidden>
+  <section class="dialog" aria-labelledby="authTitle">
+    <div class="dialog-logo">◈</div><h2 id="authTitle">Entrar na Orquestra</h2>
+    <p>Uma única conversa para acompanhar seu trabalho. Entre usando a conta autorizada no Supabase Chatbot.</p>
+    <form id="loginForm">
+      <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
+      <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
+      <button type="submit" class="primary-button">Entrar</button>
+    </form>
+    <p class="notice" id="loginNotice" role="status"></p>
+    <p class="tiny">Não utilize a senha do ChatGPT ou de provedores de IA aqui.</p>
+  </section>
+</div>
+<div id="projectOverlay" class="overlay" hidden>
+  <section class="dialog" aria-labelledby="projectTitle">
+    <h2 id="projectTitle">Novo projeto</h2>
+    <p>Organize suas missões por projeto. Nenhuma integração externa será alterada.</p>
+    <form id="projectForm">
+      <label>Nome<input name="name" maxlength="90" minlength="2" placeholder="Ex.: Laboratório Orquestra" required></label>
+      <label>Repositório (opcional)<input name="repo_url" placeholder="https://github.com/usuario/repositorio" inputmode="url"></label>
+      <div class="dialog-actions"><button type="button" id="cancelProject" class="secondary-button">Cancelar</button><button type="submit" class="primary-button">Criar projeto</button></div>
+    </form>
+    <p class="notice" id="projectNotice" role="status"></p>
+  </section>
+</div>
+</body>
+</html>
