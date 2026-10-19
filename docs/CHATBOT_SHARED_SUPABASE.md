@@ -24,11 +24,15 @@ Se o resultado for `REVIEW_EXISTING_ORQ_OBJECTS`, parar: `CREATE IF NOT EXISTS`,
 
 Se `BLOCKED_AUTH_MISSING`, parar.
 
-Se `NO_ORQ_OBJECT_COLLISIONS`, isso elimina **apenas colisões de nomes**. Ainda conferir o nome da Edge Function `orq-worker`, modelo de usuários Auth, RLS, destino do frontend, quotas e backups.
+**CONCLUÍDO em 19/10/2026 pelo SQL Editor do Chatbot:** o titular mostrou `NO_ORQ_OBJECT_COLLISIONS` no projeto `ydyzjpcmavqffdazteib`: 0 objetos, 0 rotinas, 0 políticas `orq_`, `auth_users_available=true`, `pgcrypto_present=true`. É prova de ausência de conflito de nomes, **não é autorização de migração**. Ainda verificar a Edge Function `orq-worker`, Auth/RLS, o CRM e um plano de recuperação.
 
 ## Gate 2 — migração separada (requer autorização para mudar banco)
 
-Os scripts `sql/001_init.sql` a `sql/005_hermes_kind.sql` foram escritos originalmente para um projeto **dedicado**. Não executá-los diretamente no Chatbot sem revisão das operações DDL e de privilégio; em especial `SECURITY DEFINER`, `GRANT/REVOKE` e `DROP FUNCTION` exigem auditoria para projeto compartilhado. É preferível planejar SQL de migração novo e explicitamente limitado ao namespace `orq_` e confirmar políticas RLS de isolamento `owner_id = auth.uid()`. Toda consulta e validação devem ocorrer na instância correta do Chatbot.
+Os scripts `sql/001_init.sql` a `sql/005_hermes_kind.sql` foram escritos originalmente para um projeto **dedicado**. **NÃO executar separadamente** no Chatbot.
+
+Foi preparada uma migração única **`sql/006_chatbot_shared_bootstrap_REVIEW_ONLY.sql`** para revisão: transação atômica, pré-verificação de `auth.users` e `pgcrypto`, bloqueio se qualquer objeto `orq_` já existir, criação apenas de tabelas/índices/RPCs/políticas `orq_`, e permissões RLS por `owner_id=auth.uid()`. O `service_role` é compartilhado com o CRM: não existe isolamento absoluto de credenciais, Auth ou cotas.
+
+**Status: NÃO APLICADA.** Antes de executar DDL no banco CRM/Chatbot é preciso auditar a Edge Function `orq-worker`, revisar RPCs `SECURITY DEFINER`, testar regras com dois usuários e garantir possibilidade de restauração. A execução necessita de autorização explícita para mudança no banco de produção e deve ocorrer **somente no Chatbot correto**.
 
 **Auth compartilhado**: contas criadas no `orquestra-dev` pausado não migram automaticamente. Para login no novo destino, usar uma conta Auth previamente autorizada no Chatbot ou provisionar uma conta específica aprovada pelo titular; não reusar cookies nem copiar senhas/tokens.
 
