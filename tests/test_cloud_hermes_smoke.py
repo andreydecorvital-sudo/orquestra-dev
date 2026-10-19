@@ -97,6 +97,31 @@ class HermesCloudSmokeTests(unittest.TestCase):
         result = self.simulate(usage={"provider": "openai-codex", "unavailable_reason": "no_credential"})
         self.assertEqual(result["status"], "usage_probe_unavailable")
 
+    def test_old_cli_without_usage_falls_back_to_auth_status(self):
+        def run(argv, **kwargs):
+            self.calls.append(argv)
+            if argv[1:3] == ["config", "get"]:
+                return Mock(returncode=0, stdout=json.dumps(self.config[argv[3]]))
+            if argv[1] == "usage":
+                return Mock(returncode=2, stdout="", stderr="invalid choice")
+            if argv[1:4] == ["auth", "status", "openai-codex"]:
+                return Mock(returncode=0, stdout="openai-codex: logged in\\n")
+            self.fail(str(argv))
+        result=read_only_smoke(environment={},which=lambda _: "/usr/bin/hermes",invoke=run)
+        self.assertEqual(result["status"],"subscription_auth_status_verified")
+        self.assertFalse(result["inference_tested"])
+        self.assertEqual(self.calls[-1][1:],["auth","status","openai-codex"])
+
+    def test_old_cli_cannot_claim_login_from_exit_code_only(self):
+        def run(argv, **kwargs):
+            if argv[1:3] == ["config", "get"]:
+                return Mock(returncode=0, stdout=json.dumps(self.config[argv[3]]))
+            if argv[1] == "usage":
+                return Mock(returncode=2, stdout="", stderr="invalid choice")
+            return Mock(returncode=0, stdout="openai-codex: not logged in\\n")
+        result=read_only_smoke(environment={},which=lambda _: "/usr/bin/hermes",invoke=run)
+        self.assertEqual(result["status"],"auth_status_probe_unavailable")
+
     def test_timeout_does_not_trigger_login_retry(self):
         def run(argv, **kwargs):
             if argv[1] == "config":
