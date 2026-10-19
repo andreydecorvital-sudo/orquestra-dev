@@ -105,7 +105,7 @@ class HermesCloudSmokeTests(unittest.TestCase):
             if argv[1] == "usage":
                 return Mock(returncode=2, stdout="", stderr="invalid choice")
             if argv[1:4] == ["auth", "status", "openai-codex"]:
-                return Mock(returncode=0, stdout="openai-codex: logged in\\n")
+                return Mock(returncode=0, stdout="openai-codex: logged in\n")
             self.fail(str(argv))
         result=read_only_smoke(environment={},which=lambda _: "/usr/bin/hermes",invoke=run)
         self.assertEqual(result["status"],"subscription_auth_status_verified")
@@ -118,7 +118,7 @@ class HermesCloudSmokeTests(unittest.TestCase):
                 return Mock(returncode=0, stdout=json.dumps(self.config[argv[3]]))
             if argv[1] == "usage":
                 return Mock(returncode=2, stdout="", stderr="invalid choice")
-            return Mock(returncode=0, stdout="openai-codex: not logged in\\n")
+            return Mock(returncode=0, stdout="openai-codex: not logged in\n")
         result=read_only_smoke(environment={},which=lambda _: "/usr/bin/hermes",invoke=run)
         self.assertEqual(result["status"],"auth_status_probe_unavailable")
 
