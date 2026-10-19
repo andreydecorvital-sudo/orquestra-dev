@@ -8,6 +8,17 @@ Fonte do runtime: documentação oficial https://hermes-agent.nousresearch.com/d
 Fonte OAuth: https://hermes-agent.nousresearch.com/docs/integrations/providers
 Fonte controle de gastos: https://docs.railway.com/pricing/cost-control
 
+## Reutilizar a assinatura Railway existente (19/10/2026)
+
+A conta conectada já possui o workspace pessoal `andreydecorvital-sudo's Projects` (três projetos: `argoplace-whatsapp`, `argoplace-shopee-gateway` e `ned-marketing-live`). **Não contratar outro plano Railway.** Um projeto `orquestra-cloud` pode ser criado **nesse mesmo workspace** depois da aprovação de infraestrutura; projetos separados facilitam isolamento de segredos, deploy e permissões. Não tocar nos workloads ativos WAHA/Shopee e não reaproveitar seus volumes.
+
+A mesma assinatura não torna o novo executor gratuito. Railway cobra recursos consumidos pelo conjunto de serviços. Primeiro consultar `Workspace → Usage` para ver o gasto atual e a margem de crédito incluída no plano; este conector não confirmou o tipo de plano nem o valor exato da fatura. O piloto começa com somente **um serviço** e um volume pequeno exclusivo de autenticação; não iniciar dois executores 24/7 sem evidência de necessidade.
+
+**Atenção ao limite rígido:** o teto de computação Railway se aplica ao workspace completo. Se for atingido, a plataforma desliga também os serviços WAHA e Shopee. Para controlar custos sem interromper a Argoplace, preferir alerta por e-mail e limites de recursos do serviço; não alterar hard limit do workspace sem aprovação explícita dos riscos. Nunca ajustar limites de produção em nome do teste.
+
+Fonte de preços: https://docs.railway.com/pricing
+Fonte de controles de gasto: https://docs.railway.com/pricing/cost-control
+
 ## Etapa A — Hermes independente (antes de integrar a Orquestra)
 
 1. Obter aprovação de custo e de criação do projeto Railway `orquestra-cloud`. Definir aviso e limite rígido de gasto no workspace. Não reutilizar os serviços Railway do Argoplace.
