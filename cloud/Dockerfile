@@ -7,7 +7,7 @@ WORKDIR /srv/orquestra
 COPY gateway/__init__.py gateway/engine.py gateway/hermes_bridge.py ./gateway/
 COPY orchestration/__init__.py orchestration/autonomy.py orchestration/mission_loop.py orchestration/quality.py ./orchestration/
 COPY runner/agent_worker.py runner/worker.py ./runner/
-COPY cloud/__init__.py cloud/diagnostic_runner.py ./cloud/
+COPY cloud/__init__.py cloud/diagnostic_runner.py cloud/hermes_smoke.py ./cloud/
 USER orquestra
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 CMD ["python", "-m", "cloud.diagnostic_runner"]
