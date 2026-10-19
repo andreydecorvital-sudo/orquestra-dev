@@ -41,6 +41,26 @@ class ChatFirstTests(unittest.TestCase):
         self.assertIn('OPERATION //', JS)
         self.assertNotIn("data-seed-prompt')?.click()", JS)
 
+    def test_chatgpt_sign_in_uses_official_site_only(self):
+        # Do not confuse opening chatgpt.com with an OAuth session or provider access.
+        self.assertIn('id="chatgptOverlay"', HTML)
+        self.assertIn('id="openChatGPTConnect"', HTML)
+        self.assertIn('id="chatGPTLogin"', HTML)
+        self.assertIn('id="authChatGPTOpen"', HTML)
+        self.assertEqual(HTML.count('href="https://chatgpt.com/"'), 2)
+        self.assertEqual(HTML.count('target="_blank" rel="noopener noreferrer"'), 2)
+        self.assertIn('não autentica automaticamente este painel', HTML)
+        self.assertIn('Abrir o site não conecta um agente.', HTML)
+        self.assertIn('id="closeChatGPTConnect"', HTML)
+        self.assertIn("const CHATGPT_OFFICIAL = 'https://chatgpt.com/';", JS)
+        self.assertIn('showModal(\'chatgptOverlay\',true)', JS)
+        self.assertIn("anchor.href!==CHATGPT_OFFICIAL", JS)
+        self.assertIn('closeChatGPTConnect', JS)
+        self.assertNotIn('window.open(', JS)
+        self.assertNotIn('document.cookie', JS)
+        self.assertNotIn('chrome.cookies', JS)
+        self.assertNotIn('chatgpt_connected:true', JS)
+
     def test_every_dom_id_exists(self):
         ids=set(re.findall(r'id="([a-zA-Z][a-zA-Z0-9_-]*)"',HTML))
         lookups=set(re.findall(r"\$\('([a-zA-Z][a-zA-Z0-9_-]*)'\)",JS))
