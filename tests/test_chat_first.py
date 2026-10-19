@@ -72,7 +72,7 @@ class ChatFirstTests(unittest.TestCase):
 
     def test_project_scoped_history_and_no_executors_by_default(self):
         self.assertIn("t.project_id===state.projectId",JS)
-        self.assertIn("task.project_id===state.projectId",JS)
+        self.assertIn("t.id===state.selected&&t.project_id===state.projectId",JS)
         self.assertIn("state.projects.some(p=>p.id===state.projectId)",JS)
         self.assertIn("onlineNodes()",JS)
         self.assertIn("setInterval(()=>{if(!document.hidden)refresh()},30000)",JS)
