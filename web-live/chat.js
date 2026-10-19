@@ -54,7 +54,8 @@ function renderConversation(){
  const user=node('div','message user',task.instructions);
  const reply=node('section','message system');
  const top=node('div','speaker');
- top.append(node('span','mini-logo','◈'),node('span','', 'Orquestra'));
+ top.append(node('span','mini-logo','✦'),node('span','', 'Orquestra'));
+ reply.append(node('div','mission-code','OPERATION // '+String(task.id).slice(0,8).toUpperCase()));
  const status=node('span','state-pill'+(task.status==='completed'?' done':task.status==='failed'?' failed':''),taskLabels[task.status]||task.status);
  top.append(status);reply.append(top);
  let summary;
@@ -170,6 +171,14 @@ $('composer').addEventListener('submit',async e=>{
  finally{state.busy=false;renderConnectivity()}
 });
 $('prompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$('composer').requestSubmit()}});
+// Pop-culture starter cards fill the prompt, but do NOT send a task or claim an agent is online.
+document.querySelectorAll('[data-seed-prompt]').forEach(button=>{
+ button.addEventListener('click',()=>{
+  $('prompt').value=button.dataset.seedPrompt||'';
+  $('prompt').focus();
+  $('prompt').scrollIntoView({block:'nearest',behavior:'smooth'});
+ });
+});
 function closeSidebar(){$('sidebar').classList.remove('open')}
 $('openMenu').addEventListener('click',()=>$('sidebar').classList.add('open'));
 $('closeMenu').addEventListener('click',closeSidebar);
