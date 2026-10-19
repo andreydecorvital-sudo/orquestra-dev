@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "system": "orquestra-dev",
+  "mode": "subscription_only",
+  "ai_gateway": {
+    "reference_implementation": "andreydecorvital-sudo/CRM/infra/litellm/config.example.yaml",
+    "research_alias": "orquestra-research",
+    "providers": [
+      "gemini",
+      "openai",
+      "claude",
+      "groq",
+      "grok"
+    ],
+    "status": "not_activated",
+    "enabled": false,
+    "execution_authority": false,
+    "paid_provider_fallback_for_cli": false,
+    "requires_separate_billing_approval": true,
+    "virtual_key_present": false,
+    "allowed_future_capabilities": [
+      "readonly_sanitized_research"
+    ]
+  },
+  "existing_executor": {
+    "official_cli": [
+      "codex",
+      "claude"
+    ],
+    "uses_subscription_login": true,
+    "unchanged": true
+  }
+}
