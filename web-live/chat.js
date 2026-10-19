@@ -2,7 +2,7 @@
 // Honest MVP: one request = one diagnose mission. No simulated model response,
 // artificial thread continuity, automatic deploy or third-party model access.
 const $ = id => document.getElementById(id);
-const state = {client:null,user:null,projects:[],tasks:[],nodes:[],projectId:'',selected:null,loading:false,busy:false};
+const state = {client:null,user:null,projects:[],tasks:[],nodes:[],projectId:'',selected:null,loading:false,busy:false,creatingProject:false};
 const cfg = window.ORQ_CONFIG || {};
 const TARGET = 'https://ydyzjpcmavqffdazteib.supabase.co';
 // Hermes OAuth must occur in the actual runtime; the browser never handles OAuth tokens.
@@ -26,19 +26,45 @@ function renderConnectivity(){
  $('composerHint').textContent=!state.user?'Entre para criar missões':!state.projectId?'Crie um projeto para continuar':!available.length?'Diagnóstico: entrará na fila, sem execução até parear executor':'Diagnóstico seguro: nenhuma alteração externa';
  $('send').disabled=!state.user||!state.projectId||state.busy;
 }
+// A repeated click must not fill the workspace with identical repository entries.
+// Keep every database row and its task foreign keys; group only for presentation.
+function projectKey(p){
+ const repo=String(p?.repo_url||'').trim().replace(/\/+$/,'').toLowerCase();
+ return repo?'repo:'+repo:'id:'+String(p?.id||'');
+}
+function visibleProjects(){
+ const winners=new Map();
+ const taskCount=id=>state.tasks.filter(t=>t.project_id===id).length;
+ for(const p of state.projects){
+  const key=projectKey(p),prior=winners.get(key);
+  if(!prior || taskCount(p.id)>taskCount(prior.id) ||
+     (taskCount(p.id)===taskCount(prior.id) && String(p.created_at||'')<String(prior.created_at||''))){
+   winners.set(key,p);
+  }
+ }
+ return [...winners.values()];
+}
+function activeProjectIds(){
+ const selected=state.projects.find(p=>p.id===state.projectId);
+ if(!selected)return new Set();
+ const key=projectKey(selected);
+ return new Set(state.projects.filter(p=>projectKey(p)===key).map(p=>p.id));
+}
 function renderProjects(){
- const select=$('projectSelect'),saved=state.projectId;
+ const select=$('projectSelect'),saved=state.projects.find(p=>p.id===state.projectId);
+ const projects=visibleProjects();
  select.replaceChildren();
- if(!state.projects.length)select.add(new Option('Nenhum projeto cadastrado',''));
- for(const p of state.projects)select.add(new Option(p.name,p.id));
- if(state.projects.some(p=>p.id===saved))select.value=saved;
- else state.projectId=state.projects[0]?.id||'';
+ if(!projects.length)select.add(new Option('Nenhum projeto cadastrado',''));
+ for(const p of projects)select.add(new Option(p.name,p.id));
+ const canonical=projects.find(p=>saved&&projectKey(p)===projectKey(saved));
+ state.projectId=(canonical||projects[0])?.id||'';
  if(state.projectId)select.value=state.projectId;
 }
 function renderHistory(){
  const list=$('missionList');list.replaceChildren();
  if(!state.user){list.append(node('span','muted','Faça login para ver suas missões.'));return}
- const entries=state.tasks.filter(t=>t.project_id===state.projectId);
+ const ids=activeProjectIds();
+ const entries=state.tasks.filter(t=>ids.has(t.project_id));
  if(!entries.length){list.append(node('span','muted','Nenhuma missão ainda.'));return}
  for(const task of entries){
   const button=node('button',state.selected===task.id?'selected':'',task.title);
@@ -49,7 +75,8 @@ function renderHistory(){
 }
 function renderConversation(){
  const welcome=$('welcome'),holder=$('messages');holder.replaceChildren();
- const task=state.tasks.find(t=>t.id===state.selected&&t.project_id===state.projectId);
+ const ids=activeProjectIds();
+ const task=state.tasks.find(t=>t.id===state.selected&&ids.has(t.project_id));
  welcome.hidden=!!task;
  if(!task)return;
  const user=node('div','message user',task.instructions);
@@ -135,19 +162,55 @@ $('loginForm').addEventListener('submit',async e=>{
 });
 $('signOut').addEventListener('click',async()=>{if(state.client)await state.client.auth.signOut()});
 $('projectForm').addEventListener('submit',async e=>{
- e.preventDefault();if(!state.user||!state.client)return;
- const btn=e.submitter;btn.disabled=true;
+ e.preventDefault();
+ if(state.creatingProject||!state.user||!state.client)return;
+ state.creatingProject=true;
+ const btn=e.submitter||$('projectForm').querySelector('button[type="submit"]');
+ const originalLabel=btn.textContent;
+ btn.disabled=true;btn.textContent='Salvando...';
+ notice('Conferindo cadastro...','projectNotice');
+ let name='',repo_url='';
  try{
   const data=new FormData(e.currentTarget);
-  const name=String(data.get('name')||'').trim(), repo_url=String(data.get('repo_url')||'').trim();
+  name=String(data.get('name')||'').trim();
+  repo_url=String(data.get('repo_url')||'').trim().replace(/\\/+$/,'');
   if(name.length<2||name.length>90)throw Error('Nome inválido');
-  if(repo_url&&!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/.test(repo_url))throw Error('Informe um link GitHub válido');
+  if(repo_url&&!/^https:\\/\\/github\\.com\\/[\\w.-]+\\/[\\w.-]+$/.test(repo_url))throw Error('Informe um link GitHub válido');
+  // Reuse an existing owner-scoped project instead of inserting duplicates.
+  // Use the canonical row with mission history when several already exist.
+  let existing=visibleProjects().find(p=>repo_url?projectKey(p)===projectKey({repo_url}):(!p.repo_url&&p.name.trim().toLowerCase()===name.toLowerCase()));
+  if(!existing){
+   const lookup=state.client.from('orq_projects').select('id,name,repo_url,created_at');
+   const result=repo_url?await lookup.ilike('repo_url',repo_url):await lookup.eq('name',name).eq('repo_url','');
+   if(result.error)throw result.error;
+   if(result.data?.length){
+    await refresh();
+    existing=visibleProjects().find(p=>repo_url?projectKey(p)===projectKey({repo_url}):(!p.repo_url&&p.name.trim().toLowerCase()===name.toLowerCase()));
+   }
+  }
+  if(existing){
+   state.projectId=existing.id;state.selected=null;showModal('projectOverlay',false);
+   e.currentTarget.reset();render();notice('Projeto já cadastrado. Abri o existente.');
+   return;
+  }
+  notice('Criando projeto...','projectNotice');
   const {data:project,error}=await state.client.from('orq_projects').insert({name,repo_url}).select('id').single();
   if(error)throw error;
   state.projectId=project.id;state.selected=null;showModal('projectOverlay',false);
-  e.currentTarget.reset();await refresh();
- }catch(error){notice('Não foi possível criar: '+String(error.message||'falha'),'projectNotice')}
- finally{btn.disabled=false}
+  e.currentTarget.reset();notice('Projeto criado com sucesso.');
+  await refresh();
+ }catch(error){
+  // If a network response was lost after insertion, re-read before encouraging retry.
+  await refresh();
+  const existing=visibleProjects().find(p=>repo_url?projectKey(p)===projectKey({repo_url}):(!p.repo_url&&p.name.trim().toLowerCase()===name.toLowerCase()));
+  if(existing){
+   state.projectId=existing.id;state.selected=null;showModal('projectOverlay',false);
+   e.currentTarget.reset();render();notice('Projeto encontrado e selecionado.');
+  }else notice('Não foi possível confirmar o cadastro: '+String(error.message||'falha'),'projectNotice');
+ }finally{
+  state.creatingProject=false;
+  btn.disabled=false;btn.textContent=originalLabel;
+ }
 });
 $('addProject').addEventListener('click',()=>{notice('','projectNotice');showModal('projectOverlay',true);closeSidebar()});
 $('cancelProject').addEventListener('click',()=>showModal('projectOverlay',false));
