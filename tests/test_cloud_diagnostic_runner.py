@@ -60,6 +60,26 @@ class CloudDiagnosticPilotTests(unittest.TestCase):
         with self.assertRaisesRegex(CloudPilotError, "explicitamente autorizado"):
             config_from_environment(result, self.checkout)
 
+    def test_chatbot_crm_shared_db_cannot_start_without_audit(self):
+        env = {
+            **self.env,
+            "ORQ_CLOUD_SUPABASE_URL": "https://ydyzjpcmavqffdazteib.supabase.co",
+            "ORQ_CLOUD_EXPECTED_SUPABASE_REF": "ydyzjpcmavqffdazteib",
+        }
+        with self.assertRaisesRegex(CloudPilotError, "exige auditoria"):
+            config_from_environment(env, self.checkout)
+
+    def test_chatbot_crm_shared_db_audit_must_be_explicit(self):
+        env = {
+            **self.env,
+            "ORQ_CLOUD_SUPABASE_URL": "https://ydyzjpcmavqffdazteib.supabase.co",
+            "ORQ_CLOUD_EXPECTED_SUPABASE_REF": "ydyzjpcmavqffdazteib",
+            "ORQ_CLOUD_SHARED_DB_AUDITED": "true",
+        }
+        config = config_from_environment(env, self.checkout)
+        self.assertFalse(config["allow_execution"])
+        self.assertFalse(config["allow_hermes_planning"])
+
     def test_clone_uses_fixed_repo_without_shell_or_prompt(self):
         def mock_clone(args, **kwargs):
             self.assertEqual(args[:2], ["git", "clone"])
