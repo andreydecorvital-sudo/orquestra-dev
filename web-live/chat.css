@@ -109,3 +109,6 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
  .squad-intro{font-size:8px}.starter-headline span{display:none}.message.user{max-width:95%}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.welcome{animation:none}.squad-art img,.new-chat,.starter,.send{transition:none}}
+
+/* Verified task receipt styling, never a fabricated agent result. */
+.mission-code{font-size:10px;letter-spacing:.18em;font-weight:850;color:#7d91b4;margin:0 0 9px 1px}.message.system .speaker{margin-bottom:12px}
