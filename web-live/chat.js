@@ -5,6 +5,8 @@ const $ = id => document.getElementById(id);
 const state = {client:null,user:null,projects:[],tasks:[],nodes:[],projectId:'',selected:null,loading:false,busy:false};
 const cfg = window.ORQ_CONFIG || {};
 const TARGET = 'https://ydyzjpcmavqffdazteib.supabase.co';
+// Official ChatGPT session is independent of Supabase workspace auth.
+const CHATGPT_OFFICIAL = 'https://chatgpt.com/';
 const taskLabels = {queued:'Na fila',running:'Em execução',completed:'Concluída',failed:'Falhou',cancelled:'Cancelada'};
 function notice(message,id='notice'){ $(id).textContent=message||'' }
 function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
@@ -179,6 +181,18 @@ document.querySelectorAll('[data-seed-prompt]').forEach(button=>{
   $('prompt').scrollIntoView({block:'nearest',behavior:'smooth'});
  });
 });
+// Opening the official site is NOT an OAuth flow and cannot establish AI plan access.
+function openChatGPTLoginGuide(){
+  showModal('chatgptOverlay',true);
+}
+$('openChatGPTConnect').addEventListener('click',openChatGPTLoginGuide);
+$('closeChatGPTConnect').addEventListener('click',()=>showModal('chatgptOverlay',false));
+for(const id of ['chatGPTLogin','authChatGPTOpen']){
+ const anchor=$(id);
+ if(!anchor || anchor.href!==CHATGPT_OFFICIAL || anchor.target!=='_blank'){
+  throw Error('O link do ChatGPT oficial não pôde ser verificado.');
+ }
+}
 function closeSidebar(){$('sidebar').classList.remove('open')}
 $('openMenu').addEventListener('click',()=>$('sidebar').classList.add('open'));
 $('closeMenu').addEventListener('click',closeSidebar);
