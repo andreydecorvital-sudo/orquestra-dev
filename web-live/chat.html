@@ -32,7 +32,7 @@
   <div class="main">
     <header class="topbar">
       <div class="top-title"><button class="icon-button menu-button" id="openMenu" type="button" aria-label="Abrir menu">☰</button><div class="breadcrumb"><small>ORQUESTRA / CENTRAL</small><strong>Mission Control</strong></div><span class="top-tag">CHAT MODE <span aria-hidden="true">✦</span></span></div>
-      <div class="top-right"><span id="connectionStatus" class="connection">Verificando...</span><button id="signOut" class="text-button" type="button" hidden>Sair</button></div>
+      <div class="top-right"><button id="openChatGPTConnect" class="provider-trigger" type="button"><span class="provider-symbol" aria-hidden="true">◎</span> ChatGPT <span class="connect-caption">Conectar ↗</span></button><span id="connectionStatus" class="connection">Verificando...</span><button id="signOut" class="text-button" type="button" hidden>Sair</button></div>
     </header>
     <main id="chatMain" class="chat-scroll" aria-live="polite">
       <div id="welcome" class="welcome">
@@ -78,14 +78,31 @@
 <div id="authOverlay" class="overlay" hidden>
   <section class="dialog" aria-labelledby="authTitle">
     <div class="dialog-logo">✦</div><div class="dialog-kicker">ACESSO // ESQUADRÃO</div><h2 id="authTitle">Entre na sua base</h2>
-    <p>Uma única conversa para acompanhar seu trabalho. Entre usando a conta autorizada no Supabase Chatbot.</p>
+    <p>Entre com a conta da Orquestra para salvar missões. Seu login ChatGPT é separado e pode ser aberto abaixo.</p>
     <form id="loginForm">
       <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
       <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
       <button type="submit" class="primary-button">Entrar</button>
     </form>
     <p class="notice" id="loginNotice" role="status"></p>
-    <p class="tiny">Não utilize a senha do ChatGPT ou de provedores de IA aqui.</p>
+    <div class="account-separator"><span>ou acesse seu ChatGPT oficial</span></div>
+    <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" id="authChatGPTOpen" class="chatgpt-cta"><span aria-hidden="true">◎</span> Abrir login do ChatGPT <span aria-hidden="true">↗</span></a>
+    <p class="tiny">O ChatGPT abre em outra aba e não autentica o painel Orquestra. Nunca digite a senha do ChatGPT neste formulário.</p>
+  </section>
+</div>
+<div id="chatgptOverlay" class="overlay" hidden>
+  <section class="dialog provider-dialog" aria-labelledby="chatgptTitle">
+    <div class="dialog-kicker">ORQUESTRA // CONEXÕES</div>
+    <div class="provider-hero" aria-hidden="true">◎</div>
+    <h2 id="chatgptTitle">Sua conta ChatGPT</h2>
+    <p>Entre com sua conta no <strong>site oficial do ChatGPT</strong>. A Orquestra não solicita sua senha nem copia cookies ou tokens.</p>
+    <div class="provider-steps">
+      <div><span class="step-index">01</span><div><strong>Faça login no ChatGPT</strong><small>Abre o site oficial em outra aba, no mesmo navegador.</small></div></div>
+      <div><span class="step-index">02</span><div><strong>Volte para a Orquestra</strong><small>O login do ChatGPT não autentica automaticamente este painel.</small></div></div>
+    </div>
+    <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" id="chatGPTLogin" class="chatgpt-cta"><span aria-hidden="true">◎</span> Entrar no ChatGPT <span aria-hidden="true">↗</span></a>
+    <p class="provider-warning" id="chatGPTConnectionStatus" role="status">ChatGPT na Orquestra: integração de modelos ainda não autorizada. Abrir o site não conecta um agente.</p>
+    <button type="button" id="closeChatGPTConnect" class="secondary-button close-provider">Voltar à Orquestra</button>
   </section>
 </div>
 <div id="projectOverlay" class="overlay" hidden>
