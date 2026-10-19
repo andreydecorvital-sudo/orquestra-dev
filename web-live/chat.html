@@ -3,49 +3,72 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101115">
-  <title>Orquestra — Converse com sua equipe de IA</title>
+  <meta name="theme-color" content="#090914">
+  <title>Orquestra // O seu universo de missões</title>
   <link rel="stylesheet" href="/chat.css">
   <script src="/config.js"></script>
   <script type="module" defer src="/chat.js"></script>
 </head>
 <body>
-<div class="app">
+<div class="app pop-edition">
   <aside class="sidebar" id="sidebar">
-    <div class="brandrow"><span class="brand-mark" aria-hidden="true">◈</span><span>Orquestra</span><button type="button" class="icon-button mobile-close" id="closeMenu" aria-label="Fechar menu">×</button></div>
-    <button class="new-chat" id="newChat" type="button"><span>＋</span> Nova conversa</button>
-    <div class="section-label">PROJETO</div>
+    <div class="brandrow"><span class="brand-mark" aria-hidden="true">✦</span><span class="brandlock"><span class="brand-name">ORQUESTRA<span class="brand-slash">/</span></span><small>MULTIVERSE HQ</small></span><button type="button" class="icon-button mobile-close" id="closeMenu" aria-label="Fechar menu">×</button></div>
+    <button class="new-chat" id="newChat" type="button"><span class="new-chat-plus">＋</span><span>Nova missão</span><span class="shortcut">↗</span></button>
+    <div class="section-label"><span>01</span> SEU UNIVERSO</div>
     <div class="project-switch">
       <label class="sr-only" for="projectSelect">Projeto</label>
       <select id="projectSelect" aria-label="Projeto selecionado"><option value="">Carregando...</option></select>
     </div>
     <button class="small-action" id="addProject" type="button">＋ Adicionar projeto</button>
-    <div class="section-label">MISSÕES RECENTES</div>
+    <div class="section-label"><span>02</span> ARQUIVO DE MISSÕES</div>
     <nav id="missionList" class="history" aria-label="Histórico de missões"><span class="muted">Entre para visualizar o histórico.</span></nav>
     <div class="sidebar-footer">
+      <div class="sidebar-footer-kicker">SISTEMA // TELEMETRIA</div>
       <div class="status-dotline"><span id="executorDot" class="status-dot"></span><span id="executorLabel">Executor não conectado</span></div>
       <p id="modelsLabel">IA multiagente: ainda não conectada.</p>
-      <a href="/" class="advanced-link">Painel avançado <span aria-hidden="true">↗</span></a>
+      <a href="/" class="advanced-link">⚙ Painel avançado <span aria-hidden="true">↗</span></a>
     </div>
   </aside>
   <div class="main">
     <header class="topbar">
-      <div class="top-title"><button class="icon-button menu-button" id="openMenu" type="button" aria-label="Abrir menu">☰</button><strong>Orquestra</strong><span class="top-tag">Workspace</span></div>
+      <div class="top-title"><button class="icon-button menu-button" id="openMenu" type="button" aria-label="Abrir menu">☰</button><div class="breadcrumb"><small>ORQUESTRA / CENTRAL</small><strong>Mission Control</strong></div><span class="top-tag">CHAT MODE <span aria-hidden="true">✦</span></span></div>
       <div class="top-right"><span id="connectionStatus" class="connection">Verificando...</span><button id="signOut" class="text-button" type="button" hidden>Sair</button></div>
     </header>
     <main id="chatMain" class="chat-scroll" aria-live="polite">
       <div id="welcome" class="welcome">
-        <div class="welcome-icon">◈</div>
-        <h1>O que vamos resolver?</h1>
-        <p>Descreva o objetivo. A Orquestra registra a missão, acompanha sua execução e mostra as evidências quando um executor autorizado terminar.</p>
+        <div class="hero-glow" aria-hidden="true"></div>
+        <div class="eyebrow-arc"><span class="arc-spark" aria-hidden="true">✳</span> CAPÍTULO 01 <span class="arc-divider">//</span> SUA JORNADA COMEÇA AQUI</div>
+        <div class="hero-emblem" aria-hidden="true"><span>✦</span></div>
+        <h1>Qual é a sua <em>próxima missão?</em></h1>
+        <p class="hero-subtitle">Você traz a ideia. A Orquestra cuida de registrar, acompanhar e mostrar as evidências do trabalho, em uma única conversa.</p>
+        <div class="squad-intro"><span class="squad-line"></span><span>CONHEÇA O ESQUADRÃO</span><span class="squad-line"></span></div>
+        <div class="squad-grid">
+          <article class="squad-card strategy">
+            <div class="squad-art"><img src="/assets/lelouch.webp" alt="Lelouch, identidade visual do papel de estrategista" loading="lazy"></div>
+            <div class="squad-copy"><span class="squad-number">UNIT_01 // STRATEGY</span><strong>Lelouch</strong><span>Estratégia e planejamento</span></div>
+            <span class="squad-spark" aria-hidden="true">✦</span>
+          </article>
+          <article class="squad-card execution">
+            <div class="squad-art"><img src="/assets/nagi.webp" alt="Nagi, identidade visual do papel de executor" loading="lazy"></div>
+            <div class="squad-copy"><span class="squad-number">UNIT_02 // EXECUTION</span><strong>Nagi</strong><span>Execução e validação</span></div>
+            <span class="squad-spark" aria-hidden="true">✦</span>
+          </article>
+        </div>
+        <p class="squad-disclaimer">Os personagens representam papéis da Orquestra, não IAs conectadas. A execução real depende de um executor autorizado.</p>
+        <div class="starter-headline">ESCOLHA UM PONTO DE PARTIDA <span>OU ESCREVA SUA MISSÃO ABAIXO ↓</span></div>
+        <div class="starter-grid">
+          <button type="button" class="starter" data-seed-prompt="Investigue um bug no meu projeto, identifique possíveis causas e prepare um diagnóstico com evidências."><span class="starter-icon" aria-hidden="true">⌕</span><span>Investigar um bug<small>CAÇAR O PROBLEMA</small></span><span class="starter-arrow" aria-hidden="true">↗</span></button>
+          <button type="button" class="starter" data-seed-prompt="Analise o estado do repositório e identifique riscos ou melhorias prioritárias, sem alterar nada."><span class="starter-icon" aria-hidden="true">⌘</span><span>Explorar projeto<small>MAPEAR O TERRENO</small></span><span class="starter-arrow" aria-hidden="true">↗</span></button>
+          <button type="button" class="starter" data-seed-prompt="Revise testes e verificações disponíveis e prepare um relatório de qualidade sem realizar mudanças."><span class="starter-icon" aria-hidden="true">◇</span><span>Checar qualidade<small>VALIDAR A MISSÃO</small></span><span class="starter-arrow" aria-hidden="true">↗</span></button>
+        </div>
       </div>
       <div id="messages" class="messages" aria-label="Conversa e andamento das missões"></div>
     </main>
     <section class="composer-wrap" aria-label="Nova solicitação">
       <form id="composer" class="composer">
         <label for="prompt" class="sr-only">Sua solicitação</label>
-        <textarea id="prompt" rows="2" maxlength="12000" placeholder="Descreva o que deseja investigar ou resolver..." required></textarea>
-        <div class="composer-bottom"><span id="composerHint" class="hint">Modo seguro: diagnóstico. Não modifica sistemas.</span><button type="submit" id="send" class="send" aria-label="Enviar missão" disabled>↑</button></div>
+        <textarea id="prompt" rows="2" maxlength="12000" placeholder="Qual é a missão, comandante?" required></textarea>
+        <div class="composer-bottom"><span id="composerHint" class="hint">Modo seguro: diagnóstico. Não modifica sistemas.</span><button type="submit" id="send" class="send" aria-label="Enviar missão" disabled>↗</button></div>
       </form>
       <p class="footnote">As IAs só executam quando seus provedores e um executor autorizado estiverem conectados. O chat não simula resultados.</p>
       <p class="notice" id="notice" role="status" aria-live="polite"></p>
@@ -54,7 +77,7 @@
 </div>
 <div id="authOverlay" class="overlay" hidden>
   <section class="dialog" aria-labelledby="authTitle">
-    <div class="dialog-logo">◈</div><h2 id="authTitle">Entrar na Orquestra</h2>
+    <div class="dialog-logo">✦</div><div class="dialog-kicker">ACESSO // ESQUADRÃO</div><h2 id="authTitle">Entre na sua base</h2>
     <p>Uma única conversa para acompanhar seu trabalho. Entre usando a conta autorizada no Supabase Chatbot.</p>
     <form id="loginForm">
       <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
@@ -67,7 +90,7 @@
 </div>
 <div id="projectOverlay" class="overlay" hidden>
   <section class="dialog" aria-labelledby="projectTitle">
-    <h2 id="projectTitle">Novo projeto</h2>
+    <div class="dialog-kicker">EXPANSÃO DE UNIVERSO</div><h2 id="projectTitle">Novo projeto</h2>
     <p>Organize suas missões por projeto. Nenhuma integração externa será alterada.</p>
     <form id="projectForm">
       <label>Nome<input name="name" maxlength="90" minlength="2" placeholder="Ex.: Laboratório Orquestra" required></label>
