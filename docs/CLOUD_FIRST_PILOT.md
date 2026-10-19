@@ -9,7 +9,7 @@ A primeira fase da nuvem serve para **provar o caminho de rede e autenticação 
 ## Topologia proposta
 
 - Vercel: painel (já existente).
-- Supabase: preferir o projeto **Chatbot** que o titular autorizou reutilizar, mas apenas depois do inventário read-only e da revisão dos riscos do Auth compartilhado. Instruções: `docs/CHATBOT_SHARED_SUPABASE.md`.
+- Supabase: o projeto **Chatbot** foi confirmado como `ydyzjpcmavqffdazteib` e é **também o banco utilizado pelo CRM**. Reutilização exige inventário read-only e revisão do Auth e dos privilégios de `service_role` compartilhados. O conector Supabase atual não tem acesso a este projeto. Instruções: `docs/CHATBOT_SHARED_SUPABASE.md`.
 - Worker em contêiner persistente: no piloto, apenas `diagnose` e `integrations`. Não usar o Supabase da Argoplace por conveniência.
 - Sandbox Git: clone efêmero somente de `https://github.com/andreydecorvital-sudo/orquestra-dev.git` público. Nada de clone da Argoplace nesta fase.
 - O Origin fornece contexto somente após integração aprovada; não concede permissões nem roda código.
@@ -21,8 +21,8 @@ Contexto Docker: raiz do repositório; Dockerfile: `cloud/Dockerfile`. O Dockerf
 
 Variáveis secretas do contêiner a provisionar **apenas após confirmar o projeto Chatbot autorizado e seu inventário de compatibilidade**:
 
-- `ORQ_CLOUD_SUPABASE_URL`: HTTPS do projeto Chatbot *após confirmação de seu ID*. Não usar o Supabase canônico da Argoplace.
-- `ORQ_CLOUD_EXPECTED_SUPABASE_REF`: o mesmo identificador de 20 caracteres de `ORQ_CLOUD_SUPABASE_URL`. O executor recusa qualquer URL divergente. Nunca adivinhar o ID.
+- `ORQ_CLOUD_SUPABASE_URL`: HTTPS do projeto Chatbot identificado (`https://ydyzjpcmavqffdazteib.supabase.co`), **somente depois da auditoria e aprovação da migração compartilhada**. Não usar o Supabase canônico da Argoplace.
+- `ORQ_CLOUD_EXPECTED_SUPABASE_REF`: `ydyzjpcmavqffdazteib`, o identificador de 20 caracteres do Chatbot confirmado. O executor recusa URL divergente. A presença dessas strings na documentação **não ativa nem autoriza o deploy**.
 - `ORQ_CLOUD_NODE_ID`: UUID do executor pareado para o dono correto.
 - `ORQ_CLOUD_NODE_SECRET`: segredo de 64 caracteres hexadecimais, fornecido no pareamento; nunca versionar, mostrar no frontend ou colar no chat.
 - `ORQ_CLOUD_PROJECT_ID`: UUID do projeto de piloto registrado no painel, cuja única pasta autorizada será o clone público `orquestra-dev`.
