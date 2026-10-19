@@ -16,6 +16,7 @@ PUBLIC_PILOT_REPO = "https://github.com/andreydecorvital-sudo/orquestra-dev.git"
 UUID_RE = re.compile(r"[0-9a-fA-F-]{36}\Z")
 SECRET_RE = re.compile(r"[0-9a-fA-F]{64}\Z")
 SUPABASE_URL_RE = re.compile(r"https://[a-z0-9-]+\.supabase\.co\Z", re.IGNORECASE)
+SHARED_CHATBOT_REF = "ydyzjpcmavqffdazteib"  # Shared with CRM; database audit required.
 
 
 class CloudPilotError(RuntimeError):
@@ -32,6 +33,8 @@ def config_from_environment(env: Mapping[str, str], checkout: pathlib.Path) -> d
         raise CloudPilotError("URL do Supabase ausente ou inválida")
     if not re.fullmatch(r"[a-z0-9]{20}", expected_ref) or url != f"https://{expected_ref}.supabase.co":
         raise CloudPilotError("Projeto Supabase não corresponde ao projeto explicitamente autorizado")
+    if expected_ref == SHARED_CHATBOT_REF and env.get("ORQ_CLOUD_SHARED_DB_AUDITED") != "true":
+        raise CloudPilotError("Supabase Chatbot compartilhado com CRM exige auditoria antes do worker")
     if not UUID_RE.fullmatch(node_id) or not UUID_RE.fullmatch(project_id):
         raise CloudPilotError("IDs do nó/projeto devem ser UUIDs válidos")
     if not SECRET_RE.fullmatch(node_secret):
