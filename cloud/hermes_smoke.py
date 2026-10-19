@@ -109,7 +109,7 @@ def read_only_smoke(
         result["status"] = (
             "subscription_auth_status_verified"
             if auth.returncode == 0 and
-                re.search(r"(?im)^\\s*openai-codex\\s*:\\s*logged\\s+in\\s*$", auth_text)
+                re.search(r"(?im)^\s*openai-codex\s*:\s*logged\s+in\s*$", auth_text)
             else "auth_status_probe_unavailable"
         )
         return result
