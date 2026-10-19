@@ -13,9 +13,9 @@ import tempfile
 from typing import Mapping
 
 PUBLIC_PILOT_REPO = "https://github.com/andreydecorvital-sudo/orquestra-dev.git"
-UUID_RE = re.compile(r"[0-9a-fA-F-]{36}\\Z")
-SECRET_RE = re.compile(r"[0-9a-fA-F]{64}\\Z")
-SUPABASE_URL_RE = re.compile(r"https://[a-z0-9-]+\\.supabase\\.co\\Z", re.IGNORECASE)
+UUID_RE = re.compile(r"[0-9a-fA-F-]{36}\Z")
+SECRET_RE = re.compile(r"[0-9a-fA-F]{64}\Z")
+SUPABASE_URL_RE = re.compile(r"https://[a-z0-9-]+\.supabase\.co\Z", re.IGNORECASE)
 
 
 class CloudPilotError(RuntimeError):
