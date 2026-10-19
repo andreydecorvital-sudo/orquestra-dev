@@ -12,8 +12,8 @@ NO unattended OAuth, paid fallback, production Git/CRM access, or deployment.
 """
 from __future__ import annotations
 
-import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -28,7 +28,7 @@ class HermesLoginUnavailable(RuntimeError):
 
 
 LOGIN_ARGS = ("auth", "add", "openai-codex", "--type", "oauth")
-STATUS_ARGS = ("usage", "--provider", "openai-codex", "--json")
+STATUS_ARGS = ("auth", "status", "openai-codex")
 
 
 def launch_hermes_device_login(
@@ -80,14 +80,13 @@ def launch_hermes_device_login(
         return "device_login_completed_status_unverified"
     if verified.returncode != 0:
         return "device_login_completed_status_unverified"
-    try:
-        usage = json.loads(verified.stdout)
-    except (TypeError, ValueError):
-        return "device_login_completed_status_unverified"
-    if not isinstance(usage, dict) or usage.get("provider") != "openai-codex" or usage.get("unavailable_reason"):
-        return "device_login_completed_status_unverified"
-    # Usage proves the credential is accepted, not that an inference ran.
-    return "hermes_oauth_usage_verified"
+    # Hermes v0.21.3 (2026.9.14) supports `auth status` but not
+    # `hermes usage`. Exit code 0 alone does NOT prove a valid login.
+    # Do not return the CLI output: it may contain account identifiers.
+    safe_text = verified.stdout if isinstance(verified.stdout, str) else ""
+    if re.search(r"(?im)^\\s*openai-codex\\s*:\\s*logged\\s+in\\s*$", safe_text):
+        return "hermes_oauth_status_verified"
+    return "device_login_completed_status_unverified"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -105,7 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         print("HERMES_LOGIN_BLOCKED: " + str(exc))
         return 1
     print("HERMES_LOGIN_RESULT: " + status)
-    return 0 if status == "hermes_oauth_usage_verified" else 1
+    return 0 if status == "hermes_oauth_status_verified" else 1
 
 
 if __name__ == "__main__":
