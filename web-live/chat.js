@@ -173,9 +173,9 @@ $('projectForm').addEventListener('submit',async e=>{
  try{
   const data=new FormData(e.currentTarget);
   name=String(data.get('name')||'').trim();
-  repo_url=String(data.get('repo_url')||'').trim().replace(/\\/+$/,'');
+  repo_url=String(data.get('repo_url')||'').trim().replace(/\/+$/,'');
   if(name.length<2||name.length>90)throw Error('Nome inválido');
-  if(repo_url&&!/^https:\\/\\/github\\.com\\/[\\w.-]+\\/[\\w.-]+$/.test(repo_url))throw Error('Informe um link GitHub válido');
+  if(repo_url&&!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+$/.test(repo_url))throw Error('Informe um link GitHub válido');
   // Reuse an existing owner-scoped project instead of inserting duplicates.
   // Use the canonical row with mission history when several already exist.
   let existing=visibleProjects().find(p=>repo_url?projectKey(p)===projectKey({repo_url}):(!p.repo_url&&p.name.trim().toLowerCase()===name.toLowerCase()));
