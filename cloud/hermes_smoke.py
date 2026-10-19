@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from collections.abc import Callable, Mapping
@@ -91,7 +92,26 @@ def read_only_smoke(
         result["status"] = "usage_probe_unavailable"
         return result
     if p.returncode != 0:
-        result["status"] = "usage_probe_unavailable"
+        # v0.21.3 (2026.9.14) predates "hermes usage". Use the
+        # supported, read-only auth status command as a *weaker* signal.
+        # Exit code 0 alone is insufficient: auth status may print
+        # "not logged in" and still exit cleanly.
+        try:
+            auth = invoke(
+                [exe, "auth", "status", "openai-codex"],
+                capture_output=True, text=True, timeout=30,
+                shell=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            result["status"] = "auth_status_probe_unavailable"
+            return result
+        auth_text = auth.stdout if isinstance(auth.stdout, str) else ""
+        result["status"] = (
+            "subscription_auth_status_verified"
+            if auth.returncode == 0 and
+                re.search(r"(?im)^\\s*openai-codex\\s*:\\s*logged\\s+in\\s*$", auth_text)
+            else "auth_status_probe_unavailable"
+        )
         return result
     try:
         usage = json.loads(p.stdout)
