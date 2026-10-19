@@ -8,7 +8,7 @@
 2. **Claude Code CLI oficial**, autenticado pela conta Claude Pro/Max, sujeito à elegibilidade e aos limites da assinatura.
 3. **Sign in with ChatGPT — uso do plano**, quando a aplicação for elegível e autorizada, seguindo a integração OAuth documentada para clientes open-source. Isso pode utilizar a **Responses API como transporte oficial**, mas **não** é uma chave de API paga. É necessário obter consentimento e permissões específicas, utilizar o endpoint oficial, `store=false`, `stream=true` e verificar limites. Não é um endpoint genérico ilimitado. Ver: https://developers.openai.com/siwc/token-sharing-open-source.
 4. Um **gateway HTTP local** da própria Orquestra como *interface interna* para orquestrar a CLI oficialmente autenticada; esse gateway não é a API paga de inferência do provedor.
-5. Hermes como orquestrador auxiliar opcional, preferencialmente acionando mecanismos oficiais por login e respeitando as restrições de cada provedor.
+5. **Hermes como caminho preferencial para autenticar o provedor GPT da Orquestra Cloud**, usando `hermes auth add openai-codex` e OAuth próprio da assinatura ChatGPT/Codex elegível, com consentimento humano, quotas e limites do plano. Não confundir a sessão Hermes com login separado do Codex CLI; detalhes em `docs/HERMES_CHATGPT_CLOUD_AUTH.md`.
 
 ## Proibido
 
