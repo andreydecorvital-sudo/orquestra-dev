@@ -95,16 +95,17 @@
     <div class="dialog-kicker">ORQUESTRA // AUTENTICAÇÃO REAL</div>
     <div class="provider-hero" aria-hidden="true">✦</div>
     <h2 id="hermesTitle">Conectar Hermes ao ChatGPT</h2>
-    <p>O Hermes precisa rodar em um executor autorizado para iniciar o OAuth <strong>openai-codex</strong>. O login gera um código de dispositivo para você confirmar na página oficial — sem colar senhas ou tokens na Orquestra.</p>
+    <p>O Hermes já foi instalado em um serviço privado da Railway. Falta autorizar sua conta <strong>ChatGPT/Codex</strong> no próprio Hermes. O código de confirmação é gerado apenas durante o login oficial.</p>
     <p class="provider-warning" id="hermesRuntimeStatus" role="status">Verificando executor Hermes...</p>
     <div class="provider-steps">
-      <div><span class="step-index">01</span><div><strong>Executor Hermes ativo</strong><small>O contêiner atual na Railway ainda não tem Hermes instalado. Um link do ChatGPT comum não instala nem autentica Hermes.</small></div></div>
+      <div><span class="step-index">01</span><div><strong>Executor Hermes ativo</strong><small>O Hermes oficial já foi implantado e está aguardando autenticação. Nenhuma missão de IA foi habilitada.</small></div></div>
       <div><span class="step-index">02</span><div><strong>Iniciar autenticação no próprio Hermes</strong><small>O Hermes exibe um link oficial e um código temporário. A senha e os tokens ficam fora da Orquestra.</small></div></div>
       <div><span class="step-index">03</span><div><strong>Validar a sessão</strong><small>Só habilitamos missões Hermes após teste real no executor, respeitando as cotas da assinatura.</small></div></div>
     </div>
-    <label class="hermes-command-label" for="hermesCommand">Comando oficial para o executor onde o Hermes estiver instalado</label>
+    <a class="official-hermes-link" href="https://railway.com/project/6f38abc3-4a78-4725-a55d-b2063019be11" target="_blank" rel="noopener noreferrer">Abrir serviço Hermes privado na Railway ↗</a>
+    <label class="hermes-command-label" for="hermesCommand">Comando para iniciar o OAuth no terminal privado do Hermes</label>
     <div class="hermes-command-row"><input id="hermesCommand" type="text" readonly spellcheck="false" value="hermes auth add openai-codex --type oauth"><button type="button" id="copyHermesCommand" class="secondary-button">Copiar</button></div>
-    <p class="provider-warning" id="hermesLoginNotice" role="status">A Orquestra ainda não dispõe de um serviço Hermes remoto para gerar um código nesta tela. Não há sessão OAuth ativa.</p>
+    <p class="provider-warning" id="hermesLoginNotice" role="status">O serviço Hermes está instalado, mas o login ainda não foi iniciado. Esta tela não executa comandos privados; o código surgirá quando o OAuth for iniciado no serviço.</p>
     <a class="official-hermes-link" href="https://hermes-agent.nousresearch.com/docs/integrations/providers" target="_blank" rel="noopener noreferrer">Documentação oficial do login Hermes ↗</a>
     <button type="button" id="refreshHermesStatus" class="secondary-button close-provider">Verificar executor novamente</button>
     <button type="button" id="closeHermesConnect" class="secondary-button close-provider">Voltar à Orquestra</button>
