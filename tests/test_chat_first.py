@@ -47,6 +47,8 @@ class ChatFirstTests(unittest.TestCase):
         self.assertIn('id="openHermesFromAuth"', HTML)
         self.assertIn('id="hermesRuntimeStatus"', HTML)
         self.assertIn('id="hermesCommand"', HTML)
+        self.assertIn('https://railway.com/project/6f38abc3-4a78-4725-a55d-b2063019be11', HTML)
+        self.assertIn('Hermes oficial já foi implantado', HTML)
         self.assertIn('id="refreshHermesStatus"', HTML)
         self.assertIn('id="copyHermesCommand"', HTML)
         self.assertIn('id="closeHermesConnect"', HTML)
