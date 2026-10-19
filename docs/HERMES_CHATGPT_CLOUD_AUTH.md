@@ -35,6 +35,18 @@ Esse modo recebe um callback no `localhost:1455` **da própria máquina que exec
 - No primeiro marco, Hermes opera somente como **planejador/revisor textual sem ferramentas habilitadas**, conforme `gateway/hermes_bridge.py`. Habilitar escrita no worktree seria outra etapa: exigiria adaptador confiável, sandbox, testes e autorização.
 - Nenhuma sessão autenticada deve ser compartilhada entre tenants ou usuários. Uso na nuvem não depende de PC ligado **depois** da implantação do executor persistente.
 
+## Teste não interativo de prontidão — sem autenticar nem gastar tokens
+
+No executor **que efetivamente tiver Hermes instalado e autorizado**, execute:
+
+    python -m cloud.hermes_smoke
+
+A checagem só usa comandos oficiais `hermes config get ... --json` e `hermes usage --provider openai-codex --json`. Consulta o status de uso **apenas depois** de confirmar `model.provider=openai-codex`, ausência de `fallback_providers` e `auxiliary`, `auth.adopt_external_logins=false` e ausência de variáveis de API paga no ambiente. Nunca imprime stdout/stderr do Hermes, uso por janela, IDs nem segredos.
+
+`subscription_usage_verified` significa apenas que o CLI autenticado retornou o relatório de uso. **Não comprova que uma inferência funcionou** ou que o serviço remoto está disponível. `hermes_not_installed` significa que ainda não há runtime instalado; `usage_probe_unavailable` pede investigação local segura sem autenticação automática.
+
+O contêiner inicial do PR #18 não instala Hermes, portanto esse teste nele retorna `hermes_not_installed`. Depois da revisão de suprimentos, instalação em contêiner separado e OAuth com consentimento explícito, a mesma verificação vira o primeiro gate para ativar planejamento textual controlado.
+
 ## Critérios de aceite do marco Hermes Cloud
 
 1. Contêiner cloud do Hermes instalado a partir de artefatos revisados, isolado do worker de produção e da Argoplace.
