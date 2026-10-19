@@ -34,9 +34,9 @@ class HermesOAuthLoginTests(unittest.TestCase):
         calls=[]
         def run(cmd,**kw):
             calls.append((cmd,kw))
-            return mock.Mock(returncode=0,stdout='{"provider":"openai-codex"}')
+            return mock.Mock(returncode=0,stdout='openai-codex: logged in\n')
         result=launch_hermes_device_login(consent=True,environment=self.env,which=self.which,execute=run)
-        self.assertEqual(result,"hermes_oauth_usage_verified")
+        self.assertEqual(result,"hermes_oauth_status_verified")
         self.assertEqual(calls[0][0],["/usr/local/bin/hermes",*LOGIN_ARGS])
         self.assertEqual(calls[1][0],["/usr/local/bin/hermes",*STATUS_ARGS])
         self.assertFalse(calls[0][1]["shell"])
@@ -56,6 +56,18 @@ class HermesOAuthLoginTests(unittest.TestCase):
         run=mock.Mock(side_effect=[mock.Mock(returncode=0),mock.Mock(returncode=1)])
         result=launch_hermes_device_login(consent=True,environment=self.env,which=self.which,execute=run)
         self.assertEqual(result,"device_login_completed_status_unverified")
+
+    def test_exit_zero_without_logged_in_is_not_auth(self):
+        run=mock.Mock(side_effect=[
+            mock.Mock(returncode=0),
+            mock.Mock(returncode=0,stdout="openai-codex: not logged in\\n"),
+        ])
+        result=launch_hermes_device_login(
+            consent=True,environment=self.env,which=self.which,execute=run)
+        self.assertEqual(result,"device_login_completed_status_unverified")
+
+    def test_older_hermes_status_not_json(self):
+        self.assertEqual(STATUS_ARGS,("auth","status","openai-codex"))
 
     def test_timeout_aborts(self):
         def throw(*_args,**_kwargs):
