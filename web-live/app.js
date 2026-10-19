@@ -30,14 +30,15 @@ function listItem(title,metadata,status,output){
 function replaceList(id,items,empty){const target=$(id);target.replaceChildren();if(!items.length){target.append(el('div','empty',empty));return}for(const row of items)target.append(row)}
 function setPage(name){if(!(name in pageNames))return; if(mode!=='live' && !['browser','connections','settings'].includes(name))name='browser'; page=name; const privateBlocked=mode==='auth' && !['browser','connections'].includes(name); document.querySelectorAll('section.page').forEach(section=>section.hidden=section.id!==name || privateBlocked); $('auth').hidden=!privateBlocked; document.querySelectorAll('[data-page]').forEach(button=>button.classList.toggle('active',button.dataset.page===name));$('crumb').textContent=pageNames[name];$('nodeSecret').hidden=true;$('nodeSecret').textContent='';window.scrollTo(0,0)}
 function updateMode(){
- const active=mode==='live',authNeeded=mode==='auth';
+ const active=mode==='live',authNeeded=mode==='auth',pending=mode==='pending';
  const loginScreen=authNeeded&&!['browser','connections'].includes(page);
  $('auth').hidden=!loginScreen;
  document.querySelectorAll('section.page').forEach(section=>section.hidden=section.id!==page || loginScreen);
- $('logout').hidden=!active;
- $('sideStatus').replaceChildren();const dot=el('i','dot'+(active?' on':''));$('sideStatus').append(dot,document.createTextNode(active?'Autenticado':authNeeded?'Login necessário':'Banco não conectado'));
- $('chip').textContent=active?'AUTENTICADO':authNeeded?'NAVEGADOR DISPONÍVEL':'MODO NAVEGADOR';
+ $('logout').hidden=!(active||pending);
+ $('sideStatus').replaceChildren();const dot=el('i','dot'+(active?' on':''));$('sideStatus').append(dot,document.createTextNode(active?'Autenticado':pending?'Estrutura pendente':authNeeded?'Login necessário':'Banco não conectado'));
+ $('chip').textContent=active?'AUTENTICADO':pending?'ESTRUTURA PENDENTE':authNeeded?'NAVEGADOR DISPONÍVEL':'MODO NAVEGADOR';
  if(active){setBanner('Backend conectado. Tarefas podem ser enviadas à fila; a execução depende de um worker pareado e autorizado.',true)}
+ else if(pending)setBanner('Login reconhecido, mas as tabelas Orquestra ainda não foram verificadas neste Supabase. Missões e cadastro bloqueados até a migração e a validação RLS. O CRM não é alterado.');
  else if(authNeeded)setBanner('Modo navegador disponível sem login da Orquestra. Para salvar projetos e executar missões, entre na conta privada do Supabase.');
  else setBanner('Modo navegador disponível sem configuração. O acesso aos chats é feito nas abas oficiais, sem automatização.');
  $('queueButton').disabled=!active;
@@ -64,7 +65,7 @@ function render(){
  replaceList('projectsList',projects.map(p=>listItem(p.name,p.repo_url||'Sem URL cadastrada','REGISTRADO')),'Nenhum projeto cadastrado.');
  replaceList('nodesList',nodes.map(n=>listItem(n.name,'ID: '+n.id+' · Último contato: '+when(n.last_seen_at),n.revoked_at?'REVOGADO':n.last_seen_at&&(Date.now()-Date.parse(n.last_seen_at))<120000?'ONLINE · '+(n.capabilities||[]).join(', '):'OFFLINE')),'Nenhum executor pareado.');
 }
-async function refresh(){if(mode!=='live'||!client)return;
+async function refresh(){if(!['live','pending'].includes(mode)||!client)return;
  try{
   const [projects,nodes,tasks]=await Promise.all([
     client.from('orq_projects').select('id,name,repo_url,created_at').order('created_at',{ascending:false}),
@@ -72,8 +73,10 @@ async function refresh(){if(mode!=='live'||!client)return;
     client.from('orq_tasks').select('id,project_id,title,kind,status,output,created_at,started_at,finished_at,attempts').order('created_at',{ascending:false}).limit(100)
   ]);
   if(projects.error||nodes.error||tasks.error)throw projects.error||nodes.error||tasks.error;
-  data={projects:projects.data||[],nodes:nodes.data||[],tasks:tasks.data||[]};render();
- }catch(error){setBanner('Não foi possível sincronizar. Verifique as migrações, permissões RLS e o projeto escolhido.');console.warn('Sync unavailable:',error?.code||'unknown')}
+  data={projects:projects.data||[],nodes:nodes.data||[],tasks:tasks.data||[]};
+  if(mode==='pending'){mode='live';updateMode();setPage('home')}
+  render();
+ }catch(error){mode='pending';data={projects:[],nodes:[],tasks:[]};updateMode();setPage('browser');render();console.warn('Schema unavailable:',error?.code||'unknown')}
 }
 async function connect(cfg){
  try{
@@ -83,11 +86,11 @@ async function connect(cfg){
    });
    const {data:auth,error}=await client.auth.getUser();
    if(error && error.name!=='AuthSessionMissingError')console.warn('Initial auth status:',error.name);
-   mode=auth?.user?'live':'auth';
+   mode=auth?.user?'pending':'auth';
    updateMode();
-   if(mode==='live'){setPage('home');await refresh()} else setPage('browser');
+   if(mode==='pending'){setPage('browser');await refresh()} else setPage('browser');
    client.auth.onAuthStateChange((event,session)=>{
-     if(event==='SIGNED_IN'&&session){mode='live';updateMode();setPage('home');setTimeout(refresh,0)}
+     if(event==='SIGNED_IN'&&session){mode='pending';updateMode();setPage('browser');setTimeout(refresh,0)}
      if(event==='SIGNED_OUT'){mode='auth';data={projects:[],nodes:[],tasks:[]};updateMode();setPage('browser');render()}
    });
  }catch(error){client=null;mode='setup';setPage('browser');updateMode();message('setupMsg','Banco temporariamente indisponível. O modo navegador continua funcionando sem Supabase.')}
