@@ -60,7 +60,7 @@ class ChatFirstTests(unittest.TestCase):
         self.assertIn("task.project_id===state.projectId",JS)
         self.assertIn("state.projects.some(p=>p.id===state.projectId)",JS)
         self.assertIn("onlineNodes()",JS)
-        self.assertIn("date",CSS.lower() if False else JS.lower()) if False else None
+        self.assertIn("setInterval(()=>{if(!document.hidden)refresh()},30000)",JS)
 
 
 if __name__=='__main__':
