@@ -26,6 +26,21 @@ class ChatFirstTests(unittest.TestCase):
         self.assertIn('id="missionList"',HTML)
         self.assertIn('@media(max-width:800px)',CSS)
 
+    def test_pop_culture_squad_is_presentation_not_provider_claim(self):
+        for asset in ('/assets/lelouch.webp', '/assets/nagi.webp'):
+            self.assertIn(asset, HTML)
+            self.assertTrue((ROOT / 'web-live' / asset.lstrip('/')).exists(), asset)
+        for label in ('LELOUCH', 'Nagi', 'CONHEÇA O ESQUADRÃO',
+                      'Os personagens representam papéis', 'MISSION CONTROL'):
+            self.assertIn(label.lower(), HTML.lower())
+        self.assertIn('squad-grid', CSS)
+        self.assertIn('prefers-reduced-motion:reduce', CSS)
+        self.assertIn('data-seed-prompt', HTML)
+        self.assertIn('document.querySelectorAll(\'[data-seed-prompt]\')', JS)
+        self.assertIn('button.dataset.seedPrompt', JS)
+        self.assertIn('OPERATION //', JS)
+        self.assertNotIn("data-seed-prompt')?.click()", JS)
+
     def test_every_dom_id_exists(self):
         ids=set(re.findall(r'id="([a-zA-Z][a-zA-Z0-9_-]*)"',HTML))
         lookups=set(re.findall(r"\$\('([a-zA-Z][a-zA-Z0-9_-]*)'\)",JS))
