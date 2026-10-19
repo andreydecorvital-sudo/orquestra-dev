@@ -5,8 +5,7 @@ const $ = id => document.getElementById(id);
 const state = {client:null,user:null,projects:[],tasks:[],nodes:[],projectId:'',selected:null,loading:false,busy:false};
 const cfg = window.ORQ_CONFIG || {};
 const TARGET = 'https://ydyzjpcmavqffdazteib.supabase.co';
-// Official ChatGPT session is independent of Supabase workspace auth.
-const CHATGPT_OFFICIAL = 'https://chatgpt.com/';
+// Hermes OAuth must occur in the actual runtime; the browser never handles OAuth tokens.
 const taskLabels = {queued:'Na fila',running:'Em execução',completed:'Concluída',failed:'Falhou',cancelled:'Cancelada'};
 function notice(message,id='notice'){ $(id).textContent=message||'' }
 function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
@@ -181,18 +180,44 @@ document.querySelectorAll('[data-seed-prompt]').forEach(button=>{
   $('prompt').scrollIntoView({block:'nearest',behavior:'smooth'});
  });
 });
-// Opening the official site is NOT an OAuth flow and cannot establish AI plan access.
-function openChatGPTLoginGuide(){
-  showModal('chatgptOverlay',true);
-}
-$('openChatGPTConnect').addEventListener('click',openChatGPTLoginGuide);
-$('closeChatGPTConnect').addEventListener('click',()=>showModal('chatgptOverlay',false));
-for(const id of ['chatGPTLogin','authChatGPTOpen']){
- const anchor=$(id);
- if(!anchor || anchor.href!==CHATGPT_OFFICIAL || anchor.target!=='_blank'){
-  throw Error('O link do ChatGPT oficial não pôde ser verificado.');
+// No fake "Sign in with ChatGPT". A real OAuth challenge can only be
+// issued by Hermes running on an isolated executor with persistent auth storage.
+function renderHermesReadiness(){
+ const online=onlineNodes();
+ const hermesNodes=online.filter(n=>(n.capabilities||[]).includes('hermes'));
+ const status=$('hermesRuntimeStatus');
+ if(!state.user){
+  status.textContent='Sessão da Orquestra não iniciada. Mesmo após entrar, Hermes precisa estar instalado no executor.';
+ }else if(!hermesNodes.length){
+  status.textContent='Hermes remoto indisponível. Nenhum executor online anunciou capacidade Hermes. O runtime cloud ainda não foi ativado.';
+ }else{
+  status.textContent='Executor com capacidade Hermes detectado. Isso NÃO confirma OAuth nem permite iniciar login neste painel; aguarde o serviço de autenticação autenticado.';
  }
+ $('hermesLoginNotice').textContent='Login de dispositivo ainda não iniciado. Nenhum código foi gerado.';
 }
+function openHermesGuide(){
+ showModal('hermesOverlay',true);
+ renderHermesReadiness();
+}
+$('openHermesConnect').addEventListener('click',openHermesGuide);
+$('openHermesFromAuth').addEventListener('click',openHermesGuide);
+$('closeHermesConnect').addEventListener('click',()=>showModal('hermesOverlay',false));
+$('refreshHermesStatus').addEventListener('click',async()=>{
+ $('hermesLoginNotice').textContent='Verificando a disponibilidade de executores...';
+ await refresh();
+ renderHermesReadiness();
+});
+$('copyHermesCommand').addEventListener('click',async()=>{
+ const command=$('hermesCommand');
+ try{
+  await navigator.clipboard.writeText(command.value);
+  $('hermesLoginNotice').textContent='Comando copiado. Ele deve ser executado no ambiente onde Hermes estiver instalado; este clique não iniciou o OAuth.';
+ }catch{
+  command.focus();command.select();
+  $('hermesLoginNotice').textContent='Comando selecionado; copie com Ctrl+C. Não cole códigos ou tokens no chat.';
+ }
+});
+
 function closeSidebar(){$('sidebar').classList.remove('open')}
 $('openMenu').addEventListener('click',()=>$('sidebar').classList.add('open'));
 $('closeMenu').addEventListener('click',closeSidebar);
