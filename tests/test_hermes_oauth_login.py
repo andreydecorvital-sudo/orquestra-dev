@@ -34,9 +34,9 @@ class HermesOAuthLoginTests(unittest.TestCase):
         calls=[]
         def run(cmd,**kw):
             calls.append((cmd,kw))
-            return mock.Mock(returncode=0)
+            return mock.Mock(returncode=0,stdout='{"provider":"openai-codex"}')
         result=launch_hermes_device_login(consent=True,environment=self.env,which=self.which,execute=run)
-        self.assertEqual(result,"hermes_oauth_verified")
+        self.assertEqual(result,"hermes_oauth_usage_verified")
         self.assertEqual(calls[0][0],["/usr/local/bin/hermes",*LOGIN_ARGS])
         self.assertEqual(calls[1][0],["/usr/local/bin/hermes",*STATUS_ARGS])
         self.assertFalse(calls[0][1]["shell"])
