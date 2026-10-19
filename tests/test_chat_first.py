@@ -95,10 +95,23 @@ class ChatFirstTests(unittest.TestCase):
         self.assertIn("storage:sessionStorage",JS)
 
     def test_project_scoped_history_and_no_executors_by_default(self):
-        self.assertIn("t.project_id===state.projectId",JS)
-        self.assertIn("t.id===state.selected&&t.project_id===state.projectId",JS)
+        self.assertIn("const ids=activeProjectIds()",JS)
+        self.assertIn("state.tasks.filter(t=>ids.has(t.project_id))",JS)
+        self.assertIn("t.id===state.selected&&ids.has(t.project_id)",JS)
         self.assertIn("state.projects.some(p=>p.id===state.projectId)",JS)
         self.assertIn("onlineNodes()",JS)
+
+    def test_repeated_project_creation_reuses_canonical_record(self):
+        self.assertIn("state.creatingProject||!state.user", JS)
+        self.assertIn("state.creatingProject=true", JS)
+        self.assertIn("btn.disabled=true", JS)
+        self.assertIn("function visibleProjects()", JS)
+        self.assertIn("function activeProjectIds()", JS)
+        self.assertIn("const key=projectKey(p)", JS)
+        self.assertIn("taskCount(p.id)>taskCount(prior.id)", JS)
+        self.assertIn("Projeto já cadastrado. Abri o existente.", JS)
+        self.assertIn("showModal('projectOverlay',false)", JS)
+        self.assertIn("state.creatingProject=false", JS)
         self.assertIn("setInterval(()=>{if(!document.hidden)refresh()},30000)",JS)
 
 
