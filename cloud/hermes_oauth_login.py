@@ -84,7 +84,7 @@ def launch_hermes_device_login(
     # `hermes usage`. Exit code 0 alone does NOT prove a valid login.
     # Do not return the CLI output: it may contain account identifiers.
     safe_text = verified.stdout if isinstance(verified.stdout, str) else ""
-    if re.search(r"(?im)^\\s*openai-codex\\s*:\\s*logged\\s+in\\s*$", safe_text):
+    if re.search(r"(?im)^\s*openai-codex\s*:\s*logged\s+in\s*$", safe_text):
         return "hermes_oauth_status_verified"
     return "device_login_completed_status_unverified"
 
