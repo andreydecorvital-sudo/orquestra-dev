@@ -38,6 +38,8 @@ Os scripts `sql/001_init.sql` a `sql/005_hermes_kind.sql` foram escritos origina
 
 A configuração de `cloud/diagnostic_runner.py` foi endurecida para exigir `ORQ_CLOUD_EXPECTED_SUPABASE_REF`, além da URL, e recusar inicialização caso não correspondam. O ID **autorizado, identificado e confirmado** é `ydyzjpcmavqffdazteib`; as variáveis esperadas, apenas quando o Gate 1 e o Gate 2 forem cumpridos, são `ORQ_CLOUD_SUPABASE_URL=https://ydyzjpcmavqffdazteib.supabase.co` e `ORQ_CLOUD_EXPECTED_SUPABASE_REF=ydyzjpcmavqffdazteib`. **Ainda não provisionar segredos, iniciar o worker ou conectar a UI**: a inspeção real do projeto não foi concluída.
 
+Uma trava adicional em código exige `ORQ_CLOUD_SHARED_DB_AUDITED=true` **apenas depois** de o inventário read-only, a auditoria das políticas e a revisão do risco para o CRM terem sido concluídos. Sem esta variável explicitamente `true`, o worker recusa o Supabase Chatbot. Não marcar como auditado com base somente no nome/URL do projeto.
+
 Os demais segredos (`ORQ_CLOUD_NODE_ID`, `ORQ_CLOUD_NODE_SECRET`, `ORQ_CLOUD_PROJECT_ID`) devem vir do pareamento na UI da Orquestra, no banco correto, e ficar selados na Railway. O serviço `orquestra-hermes-worker` está **staged** na Railway; não foi implantado. Nunca puxar segredos de CRM/Argoplace.
 
 A UI pública `web-live/config.js` ainda aponta para o projeto pausado `kekxcvcgyexcbleifffq`: trocar somente a URL e a chave **publishable** do frontend após teste Auth/RLS. Nenhuma chave privada no Git.
