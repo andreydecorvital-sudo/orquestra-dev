@@ -184,4 +184,5 @@ const cfg=savedConfig();
 if(cfg){$('supabaseUrl').value=cfg.supabaseUrl;$('publishableKey').value=cfg.supabasePublishableKey;await connect(cfg)}
 else{mode='setup';setPage('browser');updateMode()}
 render();
-setInterval(()=>{if(mode==='live'&&!document.hidden)refresh()},20000);
+// Low-frequency, visible-tab only polling. Also retries setup when migrations arrive.
+setInterval(()=>{if(['live','pending'].includes(mode)&&!document.hidden)refresh()},60000);
