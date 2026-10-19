@@ -13,7 +13,7 @@ A primeira fase da nuvem serve para **provar o caminho de rede e autenticação 
 - Worker em contêiner persistente: no piloto, apenas `diagnose` e `integrations`. Não usar o Supabase da Argoplace por conveniência.
 - Sandbox Git: clone efêmero somente de `https://github.com/andreydecorvital-sudo/orquestra-dev.git` público. Nada de clone da Argoplace nesta fase.
 - O Origin fornece contexto somente após integração aprovada; não concede permissões nem roda código.
-- Hermes: conector local atual **não foi ligado à nuvem** e não está em execução. A decisão posterior exige um backend de autenticação oficial e licenciado, isolamento e prova de custo/quota; jamais exportar cookies ou tokens de sessão do PC.
+- **Hermes + assinatura ChatGPT/Codex é o caminho preferencial de autenticação da IA na Orquestra Cloud**, usando OAuth próprio do Hermes para `openai-codex` com autorização do titular. O conector atual ainda é local e **não está operando na nuvem**. Fluxo de login, persistência e limites em `docs/HERMES_CHATGPT_CLOUD_AUTH.md`; jamais exportar cookies ou tokens do PC.
 
 ## Preparação da imagem para o piloto
 
@@ -41,7 +41,7 @@ O contêiner verifica esses valores sem exibi-los, clona o GitHub público num d
 3. Fazer um único diagnóstico remoto end-to-end, registrando tarefa, claim, heartbeat, resultado e evidência.
 4. Simular retomada de worker sem repetir operações; incorporar com revisão o PR #16 (journal durável).
 5. Somente em ambiente isolado e após nova revisão, criar um executor Codex Cloud legítimo com testes reais. O login de assinatura no navegador **não é** uma API para executar agentes livremente de um servidor.
-6. Analisar Hermes Cloud como módulo opcional de planejamento/revisão, separado de permissões para shell, deploy ou dados reais.
+6. Implementar e validar Hermes Cloud como adaptador preferencial **somente para planejamento/revisão textual**, com `hermes auth add openai-codex` (OAuth interativo do titular), teste de quota, persistência segura e nenhum acesso a shell/deploy/dados reais. Não confundir a sessão do Hermes com a autenticação separada do Codex CLI.
 
 ## Limites e segurança
 
