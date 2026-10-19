@@ -19,7 +19,7 @@ A primeira fase da nuvem serve para **provar o caminho de rede e autenticação 
 
 Contexto Docker: raiz do repositório; Dockerfile: `cloud/Dockerfile`. O Dockerfile copia apenas arquivos Python explícitos, não copia configs locais ou segredos. Usa usuário não-root.
 
-Variáveis secretas do contêiner a provisionar **apenas com dados autorizados do banco dedicado da Orquestra**:
+Variáveis secretas do contêiner a provisionar **apenas após confirmar o projeto Chatbot autorizado e seu inventário de compatibilidade**:
 
 - `ORQ_CLOUD_SUPABASE_URL`: HTTPS do projeto Chatbot *após confirmação de seu ID*. Não usar o Supabase canônico da Argoplace.
 - `ORQ_CLOUD_EXPECTED_SUPABASE_REF`: o mesmo identificador de 20 caracteres de `ORQ_CLOUD_SUPABASE_URL`. O executor recusa qualquer URL divergente. Nunca adivinhar o ID.
@@ -38,7 +38,7 @@ O contêiner verifica esses valores sem exibi-los, clona o GitHub público num d
 ## Aceite antes de ampliar o escopo
 
 1. Confirmar custo e permissões do serviço persistente; não criar ou pagar recursos automaticamente.
-2. Verificar que o banco escolhido é da Orquestra, que o device está pareado e que o serviço não usa o banco operacional da Argoplace.
+2. Verificar que o banco escolhido é o projeto Chatbot autorizado (ID confirmado e inventário sem conflitos), que o dispositivo está pareado e que o serviço não usa o banco operacional da Argoplace.
 3. Fazer um único diagnóstico remoto end-to-end, registrando tarefa, claim, heartbeat, resultado e evidência.
 4. Simular retomada de worker sem repetir operações; incorporar com revisão o PR #16 (journal durável).
 5. Somente em ambiente isolado e após nova revisão, criar um executor Codex Cloud legítimo com testes reais. O login de assinatura no navegador **não é** uma API para executar agentes livremente de um servidor.
