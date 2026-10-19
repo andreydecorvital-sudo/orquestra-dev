@@ -16,7 +16,8 @@ class CloudDiagnosticPilotTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.checkout = pathlib.Path(self.temp.name) / "pilot"
         self.env = {
-            "ORQ_CLOUD_SUPABASE_URL": "https://example.supabase.co",
+            "ORQ_CLOUD_SUPABASE_URL": "https://abcdefghijklmnopqrst.supabase.co",
+            "ORQ_CLOUD_EXPECTED_SUPABASE_REF": "abcdefghijklmnopqrst",
             "ORQ_CLOUD_NODE_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "ORQ_CLOUD_NODE_SECRET": "b" * 64,
             "ORQ_CLOUD_PROJECT_ID": "cccccccc-cccc-cccc-cccc-cccccccccccc",
@@ -47,6 +48,17 @@ class CloudDiagnosticPilotTests(unittest.TestCase):
     def test_bad_node_id_blocks(self):
         with self.assertRaises(CloudPilotError):
             config_from_environment({**self.env, "ORQ_CLOUD_NODE_ID": "invalid"}, self.checkout)
+
+    def test_wrong_supabase_project_ref_blocks_before_network(self):
+        result = dict(self.env, ORQ_CLOUD_EXPECTED_SUPABASE_REF="zyxwvutsrqponmlkjihg")
+        with self.assertRaisesRegex(CloudPilotError, "explicitamente autorizado"):
+            config_from_environment(result, self.checkout)
+
+    def test_missing_expected_ref_blocks_even_when_url_valid(self):
+        result = dict(self.env)
+        del result["ORQ_CLOUD_EXPECTED_SUPABASE_REF"]
+        with self.assertRaisesRegex(CloudPilotError, "explicitamente autorizado"):
+            config_from_environment(result, self.checkout)
 
     def test_clone_uses_fixed_repo_without_shell_or_prompt(self):
         def mock_clone(args, **kwargs):
