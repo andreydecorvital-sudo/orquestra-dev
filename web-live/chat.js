@@ -187,11 +187,11 @@ function renderHermesReadiness(){
  const hermesNodes=online.filter(n=>(n.capabilities||[]).includes('hermes'));
  const status=$('hermesRuntimeStatus');
  if(!state.user){
-  status.textContent='Sessão da Orquestra não iniciada. Mesmo após entrar, Hermes precisa estar instalado no executor.';
+  status.textContent='Hermes instalado na nuvem. Sua conta Orquestra ainda não está autenticada; o OAuth Codex é independente do login deste painel.';
  }else if(!hermesNodes.length){
-  status.textContent='Hermes remoto indisponível. Nenhum executor online anunciou capacidade Hermes. O runtime cloud ainda não foi ativado.';
+  status.textContent='Hermes está instalado e online na Railway, porém ainda não foi pareado à fila da Orquestra. O login Codex precisa ser iniciado no terminal privado da instância.';
  }else{
-  status.textContent='Executor com capacidade Hermes detectado. Isso NÃO confirma OAuth nem permite iniciar login neste painel; aguarde o serviço de autenticação autenticado.';
+  status.textContent='Executor Hermes detectado na fila. Isto não confirma uma sessão OAuth. Verifique o login no próprio runtime antes de executar missões.';
  }
  $('hermesLoginNotice').textContent='Login de dispositivo ainda não iniciado. Nenhum código foi gerado.';
 }
