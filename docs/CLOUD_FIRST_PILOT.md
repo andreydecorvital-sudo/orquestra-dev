@@ -23,6 +23,7 @@ Variáveis secretas do contêiner a provisionar **apenas após confirmar o proje
 
 - `ORQ_CLOUD_SUPABASE_URL`: HTTPS do projeto Chatbot identificado (`https://ydyzjpcmavqffdazteib.supabase.co`), **somente depois da auditoria e aprovação da migração compartilhada**. Não usar o Supabase canônico da Argoplace.
 - `ORQ_CLOUD_EXPECTED_SUPABASE_REF`: `ydyzjpcmavqffdazteib`, o identificador de 20 caracteres do Chatbot confirmado. O executor recusa URL divergente. A presença dessas strings na documentação **não ativa nem autoriza o deploy**.
+- `ORQ_CLOUD_SHARED_DB_AUDITED`: deve permanecer **ausente** até inspeção real e revisão do impacto no CRM. O valor exato `true` só pode ser preenchido depois de verificados SQL, Auth, RLS e privilégios no projeto Chatbot; caso contrário, o processo falha antes de estabelecer rede.
 - `ORQ_CLOUD_NODE_ID`: UUID do executor pareado para o dono correto.
 - `ORQ_CLOUD_NODE_SECRET`: segredo de 64 caracteres hexadecimais, fornecido no pareamento; nunca versionar, mostrar no frontend ou colar no chat.
 - `ORQ_CLOUD_PROJECT_ID`: UUID do projeto de piloto registrado no painel, cuja única pasta autorizada será o clone público `orquestra-dev`.
