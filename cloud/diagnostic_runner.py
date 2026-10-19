@@ -27,8 +27,11 @@ def config_from_environment(env: Mapping[str, str], checkout: pathlib.Path) -> d
     node_id = env.get("ORQ_CLOUD_NODE_ID", "")
     node_secret = env.get("ORQ_CLOUD_NODE_SECRET", "")
     project_id = env.get("ORQ_CLOUD_PROJECT_ID", "")
+    expected_ref = env.get("ORQ_CLOUD_EXPECTED_SUPABASE_REF", "").strip()
     if not SUPABASE_URL_RE.fullmatch(url):
-        raise CloudPilotError("URL do Supabase dedicado ausente ou inválida")
+        raise CloudPilotError("URL do Supabase ausente ou inválida")
+    if not re.fullmatch(r"[a-z0-9]{20}", expected_ref) or url != f"https://{expected_ref}.supabase.co":
+        raise CloudPilotError("Projeto Supabase não corresponde ao projeto explicitamente autorizado")
     if not UUID_RE.fullmatch(node_id) or not UUID_RE.fullmatch(project_id):
         raise CloudPilotError("IDs do nó/projeto devem ser UUIDs válidos")
     if not SECRET_RE.fullmatch(node_secret):
