@@ -160,8 +160,41 @@ def read_origin_document(
 
 
 def recommended_origin_paths(role: str) -> tuple[str, ...]:
-    """Suggest files by specialty without pretending that they were fetched."""
-    return ROLE_DOCUMENTS.get(role, ())
+    """Origin canonical rules first, then relevant skill; not proof of access."""
+    if role not in ROLE_DOCUMENTS:
+        return ()
+    return tuple(dict.fromkeys(
+        ("START_HERE.md", "AGENTS.md", *ROLE_DOCUMENTS[role])
+    ))
+
+
+def load_origin_context(
+    *,
+    role: str,
+    owner_id: str,
+    grant: OriginReadGrant,
+    github_token: str,
+    max_documents: int = 4,
+    fetch: Callable[[urllib.request.Request, float], bytes] = _default_fetch,
+) -> tuple[OriginDocument, ...]:
+    """Retrieve small, owner-scoped context with immutable source provenance.
+
+    The caller must not persist document bodies to Orquestra's public repo,
+    logs, analytics or another tenant's conversation. No caching by default.
+    """
+    if isinstance(max_documents, bool) or not isinstance(max_documents, int) \
+            or not 1 <= max_documents <= 4:
+        raise OriginUnavailable("Limite de documentos Origin inválido")
+    paths = recommended_origin_paths(role)
+    if not paths:
+        raise OriginUnavailable("Especialidade Origin desconhecida")
+    return tuple(
+        read_origin_document(
+            path=path, owner_id=owner_id, grant=grant,
+            github_token=github_token, fetch=fetch,
+        )
+        for path in paths[:max_documents]
+    )
 
 
 def propose_origin_learning(*, title: str, learning: str,
