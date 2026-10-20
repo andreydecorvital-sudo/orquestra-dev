@@ -30,6 +30,13 @@ class AssistantHubTests(unittest.TestCase):
         self.assertFalse(plan.approval_required)
         self.assertFalse(plan.executor_authorized)
 
+    def test_origin_is_recommended_as_knowledge_not_an_unverified_model(self):
+        self.assertEqual(self.plan().knowledge_sources, ())
+        self.assertEqual(self.plan("engineering").knowledge_sources, ("origin",))
+        self.assertEqual(self.plan("marketing").knowledge_sources, ("origin",))
+        self.assertEqual(self.plan(complex_work=True).knowledge_sources, ("origin",))
+        self.assertFalse(self.plan("engineering").executor_authorized)
+
     def test_no_provider_means_blocked_not_fake_online(self):
         plan = plan_assistance(AssistantRequest(), role_providers={},
                                connected_providers=frozenset())
