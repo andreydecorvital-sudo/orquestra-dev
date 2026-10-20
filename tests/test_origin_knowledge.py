@@ -6,7 +6,8 @@ import unittest
 
 from orchestration.origin_knowledge import (
     ALLOWED_DOCUMENTS, ORIGIN_REPOSITORY, OriginReadGrant,
-    OriginUnavailable, read_origin_document, recommended_origin_paths,
+    OriginUnavailable, read_origin_document, load_origin_context,
+    recommended_origin_paths,
     propose_origin_learning,
 )
 
@@ -112,6 +113,36 @@ class OriginKnowledgeTests(unittest.TestCase):
                 self.assertTrue(recommended_origin_paths(role))
                 self.assertTrue(set(recommended_origin_paths(role)) <= ALLOWED_DOCUMENTS)
         self.assertEqual(recommended_origin_paths("unknown"), ())
+
+    def test_bounded_context_reads_rules_first_and_uses_same_owner_grant(self):
+        called = []
+        def fetch(req, timeout):
+            path = req.full_url.split("/contents/")[1].split("?")[0]
+            called.append(path)
+            return gh_response(path=path, content="# verified source")
+        docs = load_origin_context(
+            role="engineering", owner_id="owner-one", grant=grant(),
+            github_token="github_pat_test_token_only", fetch=fetch)
+        self.assertEqual(called[0:2], ["START_HERE.md", "AGENTS.md"])
+        self.assertIn("skills/evidence-driven-loop/SKILL.md", called)
+        self.assertEqual(len(docs), len(called))
+        self.assertTrue(all(d.blob_sha == "a" * 40 for d in docs))
+
+    def test_context_load_rejects_unknown_role_limit_and_other_owner(self):
+        def no_network(*_):
+            self.fail("network must not run")
+        base = dict(owner_id="owner-one", grant=grant(),
+                    github_token="github_pat_test_token_only", fetch=no_network)
+        with self.assertRaises(OriginUnavailable):
+            load_origin_context(role="unknown", **base)
+        with self.assertRaises(OriginUnavailable):
+            load_origin_context(role="engineering", max_documents=0, **base)
+        with self.assertRaises(OriginUnavailable):
+            load_origin_context(role="engineering", max_documents=100, **base)
+        with self.assertRaises(OriginUnavailable):
+            load_origin_context(role="engineering", owner_id="other-user",
+                                grant=grant(), github_token="github_pat_test_token_only",
+                                fetch=no_network)
 
     def test_learning_is_proposal_not_automatic_repo_write(self):
         with self.assertRaises(ValueError):
