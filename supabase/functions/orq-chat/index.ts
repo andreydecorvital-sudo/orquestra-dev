@@ -68,10 +68,27 @@ Deno.serve(async (request: Request) => {
     if (action === 'create_thread') {
       const title = typeof body.title === 'string' ? body.title.trim().slice(0, 80) : 'Nova conversa';
       if (!title) return reply({ error: 'invalid_title' }, 400);
+      // Client-chosen UUID makes creation safely repeatable after a lost response.
+      // It is never a permission or ownership claim; owner comes only from getUser(JWT).
+      const threadId = body.thread_id;
+      if (typeof threadId !== 'string' || !UUID.test(threadId)) {
+        return reply({ error: 'invalid_thread_id' }, 400);
+      }
       const { data, error } = await admin.from('orq_chat_threads')
-        .insert({ owner_id: owner, title })
+        .insert({ id: threadId, owner_id: owner, title })
         .select('id,title,created_at,updated_at').single();
-      if (error) throw error;
+      if (error) {
+        if (error.code !== '23505') throw error;
+        // A duplicate must belong to the authenticated owner and same title.
+        const { data: existing, error: lookupError } = await admin.from('orq_chat_threads')
+          .select('id,title,created_at,updated_at')
+          .eq('id', threadId).eq('owner_id', owner).maybeSingle();
+        if (lookupError) throw lookupError;
+        if (!existing || existing.title !== title) {
+          return reply({ error: 'thread_conflict' }, 409);
+        }
+        return reply({ thread: existing }, 200);
+      }
       return reply({ thread: data }, 201);
     }
 
