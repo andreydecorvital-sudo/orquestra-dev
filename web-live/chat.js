@@ -227,9 +227,13 @@ async function submit() {
     });
     state.pending = null;
     $('prompt').value = '';
-    await loadThreads();
-    await loadThread(state.threadId);
-    showMessage('Mensagem armazenada. O modelo de IA ainda não está conectado.');
+    try {
+      await loadThreads();
+      await loadThread(state.threadId);
+      showMessage('Mensagem armazenada. O modelo de IA ainda não está conectado.');
+    } catch {
+      showMessage('A mensagem foi salva, mas o histórico não pôde ser atualizado. Nenhum novo envio é necessário.');
+    }
   } catch (error) {
     // Keep requestId + threadId for safe retry after an ambiguous network error.
     const reason = error instanceof Error ? error.message : 'request_failed';
@@ -264,6 +268,11 @@ async function connect() {
         state.messages = []; state.turns = []; state.pending = null;
         state.api = 'checking'; ++state.requestSerial; render();
       } else if (event === 'SIGNED_IN' && session?.user) {
+        if (state.user?.id && state.user.id !== session.user.id) {
+          state.threadId = ''; state.threads = [];
+          state.messages = []; state.turns = []; state.pending = null;
+          ++state.requestSerial;
+        }
         state.user = session.user; render(); void probeService();
       }
     });
