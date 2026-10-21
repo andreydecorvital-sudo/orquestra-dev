@@ -9,7 +9,7 @@ docker run -d --rm --name "$name" -e POSTGRES_PASSWORD=ci-temporary \
  postgres:17-alpine >/dev/null
 ready=0
 for i in $(seq 1 50); do
- if docker exec "$name" pg_isready -U postgres -d postgres >/dev/null 2>&1; then
+ if docker logs "$name" 2>&1 | grep -q "PostgreSQL init process complete" && docker exec "$name" pg_isready -U postgres -d postgres >/dev/null 2>&1; then
    ready=1; break
  fi
  sleep 1
