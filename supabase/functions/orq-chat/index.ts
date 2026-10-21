@@ -7,7 +7,14 @@ const admin = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   { auth: { persistSession: false } },
 );
-const allowedOrigin = Deno.env.get('ORQ_ALLOWED_ORIGIN') || 'https://orquestra-dev-app.vercel.app';
+// Explicit, verified origins only. No wildcard project domains.
+// Extra trusted origins may be supplied as a server-side secret.
+const allowedOrigins = new Set([
+  'https://orquestra-dev-app.vercel.app',
+  'https://orquestra-dev-749aiiuwe-vitaldecor.vercel.app',
+  ...(Deno.env.get('ORQ_ALLOWED_ORIGINS') || '').split(',').map(x => x.trim()).filter(Boolean),
+  ...(Deno.env.get('ORQ_ALLOWED_ORIGIN') ? [Deno.env.get('ORQ_ALLOWED_ORIGIN')!] : []),
+].filter(x => /^https:\/\/[a-z0-9.-]+(?::443)?$/.test(x)));
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function headers(origin: string | null): Record<string, string> {
@@ -15,7 +22,7 @@ function headers(origin: string | null): Record<string, string> {
     'content-type': 'application/json',
     'cache-control': 'no-store',
     'x-content-type-options': 'nosniff',
-    'access-control-allow-origin': origin === allowedOrigin ? allowedOrigin : 'null',
+    'access-control-allow-origin': origin && allowedOrigins.has(origin) ? origin : 'null',
     'access-control-allow-headers': 'authorization,apikey,content-type',
     'access-control-allow-methods': 'GET,POST,OPTIONS',
     'vary': 'Origin',
@@ -31,10 +38,10 @@ Deno.serve(async (request: Request) => {
       headers: { ...headers(origin), 'x-orq-request-id': reqId },
     });
 
+  if (origin && !allowedOrigins.has(origin)) return reply({ error: 'origin_not_allowed' }, 403);
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: headers(origin) });
   }
-  if (origin && origin !== allowedOrigin) return reply({ error: 'origin_not_allowed' }, 403);
   if (request.method === 'GET' &&
       new URL(request.url).pathname.endsWith('/health')) {
     return reply({ service: 'orq-chat', persistence: 'prepared', inference: 'not_connected' });
