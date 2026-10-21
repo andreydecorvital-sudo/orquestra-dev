@@ -62,6 +62,17 @@ Deno.serve(async (request: Request) => {
   const { data: verified, error: authError } = await admin.auth.getUser(token);
   if (authError || !verified.user) return reply({ error: 'session_invalid' }, 401);
   const owner = verified.user.id;
+  // Chatbot Auth is also used by the CRM. Authentication alone MUST NOT
+  // grant an Orquestra account. Allowlist is configured only as a server secret.
+  // Fail closed if omitted; never include the list in responses or browser JS.
+  const owners = (Deno.env.get('ORQ_CHAT_ALLOWED_OWNER_IDS') || '')
+    .split(',')
+    .map(value => value.trim().toLowerCase())
+    .filter(value => UUID.test(value));
+  if (owners.length === 0) return reply({ error: 'orquestra_not_configured' }, 503);
+  if (!owners.includes(owner.toLowerCase())) {
+    return reply({ error: 'orquestra_access_denied' }, 403);
+  }
   const action = body.action;
 
   try {
