@@ -3,124 +3,76 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090914">
-  <title>Orquestra // O seu universo de missões</title>
+  <meta name="theme-color" content="#0d0f13">
+  <meta name="description" content="Orquestra — conversas privadas e central de inteligência artificial.">
+  <title>Conversas · Orquestra</title>
   <link rel="stylesheet" href="/chat.css">
   <script src="/config.js"></script>
   <script type="module" defer src="/chat.js"></script>
 </head>
 <body>
-<div class="app pop-edition">
-  <aside class="sidebar" id="sidebar">
-    <div class="brandrow"><span class="brand-mark" aria-hidden="true">✦</span><span class="brandlock"><span class="brand-name">ORQUESTRA<span class="brand-slash">/</span></span><small>MULTIVERSE HQ</small></span><button type="button" class="icon-button mobile-close" id="closeMenu" aria-label="Fechar menu">×</button></div>
-    <button class="new-chat" id="newChat" type="button"><span class="new-chat-plus">＋</span><span>Nova missão</span><span class="shortcut">↗</span></button>
-    <div class="section-label"><span>01</span> SEU UNIVERSO</div>
-    <div class="project-switch">
-      <label class="sr-only" for="projectSelect">Projeto</label>
-      <select id="projectSelect" aria-label="Projeto selecionado"><option value="">Carregando...</option></select>
-    </div>
-    <button class="small-action" id="addProject" type="button">＋ Adicionar projeto</button>
-    <div class="section-label"><span>02</span> ARQUIVO DE MISSÕES</div>
-    <nav id="missionList" class="history" aria-label="Histórico de missões"><span class="muted">Entre para visualizar o histórico.</span></nav>
-    <div class="sidebar-footer">
-      <div class="sidebar-footer-kicker">SISTEMA // TELEMETRIA</div>
-      <div class="status-dotline"><span id="executorDot" class="status-dot"></span><span id="executorLabel">Executor não conectado</span></div>
-      <p id="modelsLabel">IA multiagente: ainda não conectada.</p>
-      <a href="/" class="advanced-link">⚙ Painel avançado <span aria-hidden="true">↗</span></a>
+<div class="workspace">
+  <aside class="sidebar" id="sidebar" aria-label="Navegação da Orquestra">
+    <div class="brand"><span class="brand-icon" aria-hidden="true">✳</span><span>orquestra<small>INTELIGÊNCIA EM CONJUNTO</small></span><button id="closeMenu" class="icon-button close-menu" type="button" aria-label="Fechar menu">×</button></div>
+    <button id="newChat" class="new-chat" type="button"><span aria-hidden="true">＋</span> Nova conversa <span aria-hidden="true" class="arrow">↗</span></button>
+    <div class="side-label">CONVERSAS</div>
+    <nav class="thread-list" id="threadList" aria-label="Conversas anteriores"><p class="muted">Entre para consultar seu histórico.</p></nav>
+    <div class="side-label side-label-small">ÁREAS DE TRABALHO</div>
+    <nav class="workspace-links" aria-label="Áreas de trabalho">
+      <a href="/chat.html" class="active" aria-current="page">◫ <span>Conversas</span></a>
+      <a href="/missions.html">☷ <span>Atividade e missões</span></a>
+      <a href="/">▦ <span>Projetos e integrações</span></a>
+    </nav>
+    <div class="side-footer">
+      <div class="runtime-dotline"><span class="runtime-dot" id="runtimeDot"></span><span id="runtimeSummary">Verificando conexões</span></div>
+      <div class="account" id="accountName">Sessão privada</div>
     </div>
   </aside>
-  <div class="main">
+  <div id="menuShade" class="menu-shade" hidden></div>
+  <main class="main" aria-label="Conversa">
     <header class="topbar">
-      <div class="top-title"><button class="icon-button menu-button" id="openMenu" type="button" aria-label="Abrir menu">☰</button><div class="breadcrumb"><small>ORQUESTRA / CENTRAL</small><strong>Mission Control</strong></div><span class="top-tag">CHAT MODE <span aria-hidden="true">✦</span></span></div>
-      <div class="top-right"><button id="openHermesConnect" class="provider-trigger" type="button"><span class="provider-symbol" aria-hidden="true">✦</span> Hermes <span class="connect-caption">OAuth ↗</span></button><span id="connectionStatus" class="connection">Verificando...</span><button id="signOut" class="text-button" type="button" hidden>Sair</button></div>
+      <div class="top-left"><button type="button" id="openMenu" class="icon-button mobile-menu" aria-label="Abrir menu">☰</button><div class="page-head"><small>ORQUESTRA / CONVERSAS</small><h1 id="threadTitle">Nova conversa</h1></div></div>
+      <div class="top-actions"><span id="chatStatus" class="status-chip">Verificando serviço</span><button type="button" id="signOut" class="sign-out" hidden>Sair</button></div>
     </header>
-    <main id="chatMain" class="chat-scroll" aria-live="polite">
+    <section class="conversation" aria-label="Histórico da conversa">
       <div id="welcome" class="welcome">
-        <div class="hero-glow" aria-hidden="true"></div>
-        <div class="eyebrow-arc"><span class="arc-spark" aria-hidden="true">✳</span> CAPÍTULO 01 <span class="arc-divider">//</span> SUA JORNADA COMEÇA AQUI</div>
-        <div class="hero-emblem" aria-hidden="true"><span>✦</span></div>
-        <h1>Qual é a sua <em>próxima missão?</em></h1>
-        <p class="hero-subtitle">Você traz a ideia. A Orquestra cuida de registrar, acompanhar e mostrar as evidências do trabalho, em uma única conversa.</p>
-        <div class="squad-intro"><span class="squad-line"></span><span>CONHEÇA O ESQUADRÃO</span><span class="squad-line"></span></div>
-        <div class="squad-grid">
-          <article class="squad-card strategy">
-            <div class="squad-art"><img src="/assets/lelouch.webp" alt="Lelouch, identidade visual do papel de estrategista" loading="lazy"></div>
-            <div class="squad-copy"><span class="squad-number">UNIT_01 // STRATEGY</span><strong>Lelouch</strong><span>Estratégia e planejamento</span></div>
-            <span class="squad-spark" aria-hidden="true">✦</span>
-          </article>
-          <article class="squad-card execution">
-            <div class="squad-art"><img src="/assets/nagi.webp" alt="Nagi, identidade visual do papel de executor" loading="lazy"></div>
-            <div class="squad-copy"><span class="squad-number">UNIT_02 // EXECUTION</span><strong>Nagi</strong><span>Execução e validação</span></div>
-            <span class="squad-spark" aria-hidden="true">✦</span>
-          </article>
-        </div>
-        <p class="squad-disclaimer">Os personagens representam papéis da Orquestra, não IAs conectadas. A execução real depende de um executor autorizado.</p>
-        <div class="starter-headline">ESCOLHA UM PONTO DE PARTIDA <span>OU ESCREVA SUA MISSÃO ABAIXO ↓</span></div>
-        <div class="starter-grid">
-          <button type="button" class="starter" data-seed-prompt="Investigue um bug no meu projeto, identifique possíveis causas e prepare um diagnóstico com evidências."><span class="starter-icon" aria-hidden="true">⌕</span><span>Investigar um bug<small>CAÇAR O PROBLEMA</small></span><span class="starter-arrow" aria-hidden="true">↗</span></button>
-          <button type="button" class="starter" data-seed-prompt="Analise o estado do repositório e identifique riscos ou melhorias prioritárias, sem alterar nada."><span class="starter-icon" aria-hidden="true">⌘</span><span>Explorar projeto<small>MAPEAR O TERRENO</small></span><span class="starter-arrow" aria-hidden="true">↗</span></button>
-          <button type="button" class="starter" data-seed-prompt="Revise testes e verificações disponíveis e prepare um relatório de qualidade sem realizar mudanças."><span class="starter-icon" aria-hidden="true">◇</span><span>Checar qualidade<small>VALIDAR A MISSÃO</small></span><span class="starter-arrow" aria-hidden="true">↗</span></button>
+        <span class="welcome-glyph" aria-hidden="true">✳</span>
+        <p class="eyebrow">SEU ESPAÇO PARA CRIAR E RESOLVER</p>
+        <h2>O que vamos construir <em>hoje?</em></h2>
+        <p class="intro">Converse, organize ideias e acompanhe projetos. As respostas de IA só aparecem quando um provedor estiver realmente conectado.</p>
+        <div class="suggestions">
+          <button type="button" data-prompt="Quero organizar as prioridades do meu projeto.">Planejar um projeto <span aria-hidden="true">↗</span></button>
+          <button type="button" data-prompt="Preciso investigar um problema técnico e suas causas.">Investigar um problema <span aria-hidden="true">↗</span></button>
+          <button type="button" data-prompt="Vamos pensar em uma campanha de marketing.">Explorar uma ideia <span aria-hidden="true">↗</span></button>
         </div>
       </div>
-      <div id="messages" class="messages" aria-label="Conversa e andamento das missões"></div>
-    </main>
-    <section class="composer-wrap" aria-label="Nova solicitação">
-      <form id="composer" class="composer">
-        <label for="prompt" class="sr-only">Sua solicitação</label>
-        <textarea id="prompt" rows="2" maxlength="12000" placeholder="Qual é a missão, comandante?" required></textarea>
-        <div class="composer-bottom"><span id="composerHint" class="hint">Modo seguro: diagnóstico. Não modifica sistemas.</span><button type="submit" id="send" class="send" aria-label="Enviar missão" disabled>↗</button></div>
-      </form>
-      <p class="footnote">As IAs só executam quando seus provedores e um executor autorizado estiverem conectados. O chat não simula resultados.</p>
-      <p class="notice" id="notice" role="status" aria-live="polite"></p>
+      <div id="messageList" class="message-list" aria-live="polite" aria-relevant="additions text"></div>
     </section>
-  </div>
-</div>
-<div id="authOverlay" class="overlay" hidden>
-  <section class="dialog" aria-labelledby="authTitle">
-    <div class="dialog-logo">✦</div><div class="dialog-kicker">ACESSO // ESQUADRÃO</div><h2 id="authTitle">Entre na sua base</h2>
-    <p>Entre com a conta da Orquestra para salvar missões. O login da assinatura ChatGPT para o Hermes é um processo separado.</p>
-    <form id="loginForm">
-      <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
-      <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
-      <button type="submit" class="primary-button">Entrar</button>
-    </form>
-    <p class="notice" id="loginNotice" role="status"></p>
-    <div class="account-separator"><span>assinatura ChatGPT para o agente</span></div>
-    <button type="button" id="openHermesFromAuth" class="chatgpt-cta"><span aria-hidden="true">✦</span> Login Hermes (OAuth) <span aria-hidden="true">↗</span></button>
-    <p class="tiny">O login do Hermes não substitui esta conta da Orquestra. Não forneça senhas, tokens nem cookies aqui.</p>
-  </section>
-</div>
-<div id="hermesOverlay" class="overlay" hidden>
-  <section class="dialog provider-dialog" aria-labelledby="hermesTitle">
-    <div class="dialog-kicker">ORQUESTRA // AUTENTICAÇÃO REAL</div>
-    <div class="provider-hero" aria-hidden="true">✦</div>
-    <h2 id="hermesTitle">Conectar Hermes ao ChatGPT</h2>
-    <p>O Hermes já foi instalado em um serviço privado da Railway. Falta autorizar sua conta <strong>ChatGPT/Codex</strong> no próprio Hermes. O código de confirmação é gerado apenas durante o login oficial.</p>
-    <p class="provider-warning" id="hermesRuntimeStatus" role="status">Verificando executor Hermes...</p>
-    <div class="provider-steps">
-      <div><span class="step-index">01</span><div><strong>Executor Hermes ativo</strong><small>O Hermes oficial já foi implantado e está aguardando autenticação. Nenhuma missão de IA foi habilitada.</small></div></div>
-      <div><span class="step-index">02</span><div><strong>Iniciar autenticação no próprio Hermes</strong><small>O Hermes exibe um link oficial e um código temporário. A senha e os tokens ficam fora da Orquestra.</small></div></div>
-      <div><span class="step-index">03</span><div><strong>Validar a sessão</strong><small>Só habilitamos missões Hermes após teste real no executor, respeitando as cotas da assinatura.</small></div></div>
+    <div class="composer-zone">
+      <div id="availabilityNotice" class="availability-notice" role="status">Validando a infraestrutura de conversas…</div>
+      <form id="composer" class="composer">
+        <label class="sr-only" for="prompt">Escreva sua mensagem</label>
+        <textarea id="prompt" rows="2" maxlength="12000" placeholder="Escreva sua mensagem…" required></textarea>
+        <div class="composer-bottom"><span id="composerHint" class="composer-hint">Histórico privado · sem respostas simuladas</span><div class="composer-buttons"><button id="retrySend" type="button" class="retry" hidden>Tentar novamente</button><button id="send" type="submit" class="send" aria-label="Enviar mensagem" disabled>↑</button></div></div>
+      </form>
+      <p class="composer-note">Nenhuma ação em sistemas externos é executada sem permissão.</p>
+      <p id="notice" class="notice" role="status" aria-live="polite"></p>
     </div>
-    <a class="official-hermes-link" href="https://railway.com/project/6f38abc3-4a78-4725-a55d-b2063019be11" target="_blank" rel="noopener noreferrer">Abrir serviço Hermes privado na Railway ↗</a>
-    <label class="hermes-command-label" for="hermesCommand">Comando para iniciar o OAuth no terminal privado do Hermes</label>
-    <div class="hermes-command-row"><input id="hermesCommand" type="text" readonly spellcheck="false" value="hermes auth add openai-codex --type oauth"><button type="button" id="copyHermesCommand" class="secondary-button">Copiar</button></div>
-    <p class="provider-warning" id="hermesLoginNotice" role="status">O serviço Hermes está instalado, mas o login ainda não foi iniciado. Esta tela não executa comandos privados; o código surgirá quando o OAuth for iniciado no serviço.</p>
-    <a class="official-hermes-link" href="https://hermes-agent.nousresearch.com/docs/integrations/providers" target="_blank" rel="noopener noreferrer">Documentação oficial do login Hermes ↗</a>
-    <button type="button" id="refreshHermesStatus" class="secondary-button close-provider">Verificar executor novamente</button>
-    <button type="button" id="closeHermesConnect" class="secondary-button close-provider">Voltar à Orquestra</button>
-  </section>
+  </main>
 </div>
-<div id="projectOverlay" class="overlay" hidden>
-  <section class="dialog" aria-labelledby="projectTitle">
-    <div class="dialog-kicker">EXPANSÃO DE UNIVERSO</div><h2 id="projectTitle">Novo projeto</h2>
-    <p>Organize suas missões por projeto. Nenhuma integração externa será alterada.</p>
-    <form id="projectForm">
-      <label>Nome<input name="name" maxlength="90" minlength="2" placeholder="Ex.: Laboratório Orquestra" required></label>
-      <label>Repositório (opcional)<input name="repo_url" placeholder="https://github.com/usuario/repositorio" inputmode="url"></label>
-      <div class="dialog-actions"><button type="button" id="cancelProject" class="secondary-button">Cancelar</button><button type="submit" class="primary-button">Criar projeto</button></div>
+<div class="auth-overlay" id="authOverlay" hidden>
+  <section class="auth-card" aria-labelledby="authTitle">
+    <span class="welcome-glyph" aria-hidden="true">✳</span>
+    <p class="eyebrow">ACESSO PRIVADO</p>
+    <h2 id="authTitle">Entrar na Orquestra</h2>
+    <p>Use sua conta autorizada. Sua assinatura de IA é conectada separadamente ao executor.</p>
+    <form id="loginForm">
+      <label>E-mail<input type="email" name="email" autocomplete="username" required></label>
+      <label>Senha<input type="password" name="password" autocomplete="current-password" required></label>
+      <button type="submit" class="login-button">Entrar</button>
     </form>
-    <p class="notice" id="projectNotice" role="status"></p>
+    <p id="loginNotice" class="notice" role="status"></p>
+    <small>Não cole tokens, códigos OAuth ou credenciais de outras plataformas aqui.</small>
   </section>
 </div>
 </body>

@@ -7,9 +7,9 @@ import re
 import unittest
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-HTML=(ROOT/'web-live/chat.html').read_text(encoding='utf-8')
-JS=(ROOT/'web-live/chat.js').read_text(encoding='utf-8')
-CSS=(ROOT/'web-live/chat.css').read_text(encoding='utf-8')
+HTML=(ROOT/'web-live/missions.html').read_text(encoding='utf-8')
+JS=(ROOT/'web-live/missions.js').read_text(encoding='utf-8')
+CSS=(ROOT/'web-live/missions.css').read_text(encoding='utf-8')
 ADVANCED=(ROOT/'web-live/index.html').read_text(encoding='utf-8')
 
 
@@ -17,8 +17,8 @@ class ChatFirstTests(unittest.TestCase):
     def test_page_and_navigation(self):
         self.assertIn('lang="pt-BR"',HTML)
         self.assertIn('<script src="/config.js"></script>',HTML)
-        self.assertIn('src="/chat.js"',HTML)
-        self.assertIn('href="/chat.css"',HTML)
+        self.assertIn('src="/missions.js"',HTML)
+        self.assertIn('href="/missions.css"',HTML)
         self.assertIn('href="/" class="advanced-link"',HTML)
         self.assertIn('href="/chat.html"',ADVANCED)
         self.assertIn('id="composer"',HTML)
