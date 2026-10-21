@@ -24,7 +24,7 @@ const ERROR_MESSAGES = {
 function elt(tag, cls, content) {
   const element = document.createElement(tag);
   if (cls) element.className = cls;
-  if (content !== undefined) element.textContent = content; // never innerHTML
+  if (content !== undefined) element.textContent = content; // text-only rendering prevents HTML injection
   return element;
 }
 function showMessage(message, id = 'notice') { $(id).textContent = message || ''; }
@@ -55,7 +55,7 @@ function renderAvailability() {
     'A infraestrutura de conversas ainda não está ativa. Nenhuma IA será simulada. ' +
     'As missões existentes continuam disponíveis na aba Atividade.';
   $('send').disabled = !live || state.busy;
-  $('retrySend').hidden = !state.pending || !live;
+  $('retrySend').hidden = !state.pending || !live || state.pending.message !== $('prompt').value.trim();
   $('retrySend').disabled = state.busy;
   $('composerHint').textContent = !authenticated ? 'Entre para salvar conversas' :
     !live ? 'Envio temporariamente indisponível' :
