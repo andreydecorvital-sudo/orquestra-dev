@@ -1,0 +1,19 @@
+name: Orquestra chat database sandbox
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/chat-database-ci.yml'
+      - 'sql/008_orquestra_chat_persistence_REVIEW_ONLY.sql'
+      - 'tests/chat-db/**'
+      - 'supabase/functions/orq-chat/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Validate PostgreSQL 17 disposable RLS and chat transactions
+        run: bash tests/chat-db/verify_postgres.sh
