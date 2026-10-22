@@ -12,6 +12,7 @@ const admin = createClient(
 const allowedOrigins = new Set([
   'https://orquestra-dev-app.vercel.app',
   'https://orquestra-dev-749aiiuwe-vitaldecor.vercel.app',
+  'https://orquestra-dev-app-git-feat-orquestra-conversa-de2047-vitaldecor.vercel.app',
   ...(Deno.env.get('ORQ_ALLOWED_ORIGINS') || '').split(',').map(x => x.trim()).filter(Boolean),
   ...(Deno.env.get('ORQ_ALLOWED_ORIGIN') ? [Deno.env.get('ORQ_ALLOWED_ORIGIN')!] : []),
 ].filter(x => /^https:\/\/[a-z0-9.-]+(?::443)?$/.test(x)));
