@@ -19,7 +19,8 @@ class ActivationPreflightTests(unittest.TestCase):
 
     def test_shared_auth_fails_closed_without_allowlist(self):
         self.assertIn("ORQ_CHAT_ALLOWED_OWNER_IDS",API)
-        self.assertIn("owners.length === 0",API)
+        self.assertIn("if (permissionError)",API)
+        self.assertIn("if (!permission)",API)
         self.assertIn("orquestra_access_denied",API)
         self.assertIn("origin && !allowedOrigins.has(origin)",API)
         self.assertIn("orquestra-dev-749aiiuwe-vitaldecor.vercel.app",API)

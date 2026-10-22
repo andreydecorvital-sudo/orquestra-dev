@@ -4,6 +4,7 @@ on:
     paths:
       - '.github/workflows/chat-database-ci.yml'
       - 'sql/008_orquestra_chat_persistence_REVIEW_ONLY.sql'
+      - 'sql/009_orquestra_chat_owner_gate.sql'
       - 'tests/chat-db/**'
       - 'supabase/functions/orq-chat/**'
   workflow_dispatch:
