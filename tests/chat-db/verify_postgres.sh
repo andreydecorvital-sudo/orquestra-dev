@@ -31,6 +31,14 @@ echo '[1/6] Simulated auth roles'
 run_sql < tests/chat-db/fixture.sql
 echo '[2/6] Original review-only migration in disposable Postgres'
 run_sql < sql/008_orquestra_chat_persistence_REVIEW_ONLY.sql
+# Stub of the already existing Orquestra projects table, exclusively in CI.
+scalar "CREATE TABLE public.orq_projects (id uuid PRIMARY KEY, owner_id uuid NOT NULL REFERENCES auth.users(id)); INSERT INTO public.orq_projects(id,owner_id) VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01','11111111-1111-4111-8111-111111111111');" >/dev/null
+run_sql < sql/009_orquestra_chat_owner_gate.sql
+test "$(scalar "SELECT count(*) FROM public.orq_chat_allowed_owners;")" = '1'
+test "$(scalar "SELECT count(*) FROM public.orq_chat_allowed_owners WHERE owner_id='11111111-1111-4111-8111-111111111111';")" = '1'
+test "$(scalar "SELECT has_table_privilege('authenticated','public.orq_chat_allowed_owners','SELECT');")" = 'f'
+test "$(scalar "SELECT has_table_privilege('authenticated','public.orq_chat_allowed_owners','INSERT');")" = 'f'
+test "$(scalar "SELECT relrowsecurity FROM pg_class WHERE oid='public.orq_chat_allowed_owners'::regclass;")" = 't'
 echo '[3/6] RLS, ownership, and grants'
 run_sql < tests/chat-db/assertions.sql
 A='11111111-1111-4111-8111-111111111111'
@@ -73,3 +81,4 @@ test "$code" -ne 0
 [[ "$again" == *'BLOCKED: chat objects already exist'* ]]
 test "$(scalar "SELECT count(*) FROM public.orq_chat_messages WHERE owner_id='$A';")" = '10'
 echo 'PASS: disposable PostgreSQL, RLS two owners, guarded SQL, idempotency, concurrency and quota'
+
