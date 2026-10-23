@@ -90,10 +90,47 @@ class PrecisionPreflightTests(unittest.TestCase):
             self.assertIn("ANTES DE CODAR", calls[0][1])
             self.assertEqual(result["quality"]["precision_preflight"], "read_only_completed")
             self.assertEqual(result["quality"]["tests"], "not_run")
+            self.assertEqual(result["quality"]["delivery_readiness"], "requires_functional_tests_and_review")
             self.assertEqual(result["stages"][0]["step"], "precision_preflight")
             self.assertEqual((repo / "src" / "shopee" / "orders.py").read_text(),
                              "def sincronizar():\n    return 1\n")
             self.assertTrue(list((home / ".orquestra" / "artifacts").glob("*.patch")))
+
+
+    def test_joint_mode_uses_claude_plan_not_support_preflight(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            repo = fixture(root)
+            home = root / "home"
+            home.mkdir()
+            calls = []
+
+            def fake_cli(provider, prompt, cwd):
+                calls.append((provider, prompt))
+                if provider == "claude" and "Prepare um plano" in prompt:
+                    return {"output": "PLANO_CLAUDE_CONFIRMADO: alterar somente orders.py com teste", "ok": True}
+                if provider == "codex":
+                    self.assertIn("PLANO_CLAUDE_CONFIRMADO", prompt)
+                    self.assertNotIn("Planejamento inicial de Claude:\\nBase ", prompt)
+                    (cwd / "src" / "shopee" / "orders.py").write_text(
+                        "def sincronizar():\\n    return 3\\n")
+                    return {"output": "patch criado", "ok": True}
+                return {"output": "Revisão concluída; testes funcionais ainda pendentes", "ok": True}
+
+            with (mock.patch("gateway.engine.pathlib.Path.home", return_value=home),
+                  mock.patch("gateway.engine.billing_keys_present", return_value=[])):
+                result = execute_job(
+                    {"projects": {"testing": str(repo)}, "allow_execution": True},
+                    {"project": "testing", "provider": "joint", "type": "code",
+                     "prompt": "Corrigir bugs reais da Shopee com teste de regressao"},
+                    cli=fake_cli,
+                )
+            self.assertEqual([provider for provider, _ in calls], ["claude", "codex", "claude"])
+            self.assertIn("PLANO_CLAUDE_CONFIRMADO", calls[1][1])
+            self.assertEqual(result["quality"]["delivery_readiness"], "requires_functional_tests_and_review")
+            self.assertEqual(result["status"], "review_required")
+            self.assertEqual([stage["step"] for stage in result["stages"]],
+                             ["precision_preflight", "plan", "implement", "review"])
 
 
 if __name__ == "__main__":
