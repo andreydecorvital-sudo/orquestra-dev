@@ -123,6 +123,12 @@ def precision_instructions(goal: str, context: dict[str, object]) -> str:
         "6. Nao faca mais que duas tentativas de reparo da mesma falha. Se persistir, "
         "pare, preserve o patch e retorne a investigacao.\n"
         "7. Ao encerrar, apresente causa/hipotese com evidencias, arquivos e testes executados "
-        "ou ausentes, riscos e status real.\n\n"
+        "ou ausentes, riscos e status real.\n"
+        "8. QUALIDADE ANTES DE VELOCIDADE: para runtime, verifique caminhos ponta a ponta, "
+        "resultado real, testes pertinentes no HEAD exato, revisao independente e rollback; "
+        "para fiscal, seguranca, tenants, banco ou acoes externas, a falta de prova BLOQUEIA "
+        "conclusao. Sintaxe verde nao prova funcionalidade. Nao afirme perfeicao nem "
+        "resultado em producao sem observacao real. Sem prazo artificial para comecar ou "
+        "aprovar PRs triviais; P0 validado tem prioridade.\n\n"
         "OBJETIVO DO USUARIO:\n" + goal
     )

@@ -9,6 +9,10 @@ Follow the Orquestra's own router and only official, subscription-authenticated 
 - **Claude Code**: leads design/UX specification and independent code review.
 - **Support**: documentation, investigation, evidence and deterministic checks; no deployment authority.
 
+## Produto: qualidade comprovada antes de velocidade (23/10/2026)
+
+A Argoplace prioriza investigar e testar antes de programar. O Orquestra deve entregar evidências verificáveis de regressão, owner funcional, revisão independente e rollback, sem afirmar que sintaxe/diff aprovado é funcionalidade pronta. O modo `joint` deve encaminhar ao Codex o plano real de Claude, não a mensagem de preflight. Se `quality.tests = not_run`, publicar apenas artefato para revisão, com `delivery_readiness = requires_functional_tests_and_review`; nunca marcar entrega final. Reforçar rigor por risco: fiscal, auth, tenant, financeiro e efeitos externos exigem aprovação contextual; não criar APIs pagas, Preview, cron ou esperar por horários artificiais.
+
 ## Precision Engineering — mandatory research-first execution
 
 - Before requesting coding changes, use the read-only `orchestration/precision.py` preflight: repository HEAD and candidate filenames from local Git (no new provider call, API, service or preview).
