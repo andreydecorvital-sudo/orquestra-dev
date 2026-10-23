@@ -9,6 +9,14 @@ Follow the Orquestra's own router and only official, subscription-authenticated 
 - **Claude Code**: leads design/UX specification and independent code review.
 - **Support**: documentation, investigation, evidence and deterministic checks; no deployment authority.
 
+## Precision Engineering — mandatory research-first execution
+
+- Before requesting coding changes, use the read-only `orchestration/precision.py` preflight: repository HEAD and candidate filenames from local Git (no new provider call, API, service or preview).
+- These paths are hints, not evidence of root cause. Implementation prompts must first inspect existing owners and tests, reproduce bugs where possible, identify the minimal change and validate it.
+- Retain the bounded two-repair limit. If the agent cannot prove a bug's cause, it should return a diagnosis/blocker rather than patching randomly.
+- Existing deterministic QA is not a behavioral test. No success, production readiness, customer safety or tenant isolation claim from `tests: not_run`.
+- Do not turn this skill into extra mandatory Claude/Codex calls or new paid infrastructure. Human approvals for sensitive actions remain in effect.
+
 ## Delivery process
 
 1. Understand the issue, constraints and verifiable acceptance criteria.
