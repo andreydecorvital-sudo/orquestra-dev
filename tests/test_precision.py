@@ -111,9 +111,9 @@ class PrecisionPreflightTests(unittest.TestCase):
                     return {"output": "PLANO_CLAUDE_CONFIRMADO: alterar somente orders.py com teste", "ok": True}
                 if provider == "codex":
                     self.assertIn("PLANO_CLAUDE_CONFIRMADO", prompt)
-                    self.assertNotIn("Planejamento inicial de Claude:\\nBase ", prompt)
+                    self.assertNotIn("Planejamento inicial de Claude:\nBase ", prompt)
                     (cwd / "src" / "shopee" / "orders.py").write_text(
-                        "def sincronizar():\\n    return 3\\n")
+                        "def sincronizar():\n    return 3\n")
                     return {"output": "patch criado", "ok": True}
                 return {"output": "Revisão concluída; testes funcionais ainda pendentes", "ok": True}
 
