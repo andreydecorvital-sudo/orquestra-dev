@@ -162,13 +162,15 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
             stages = [{"role": "support", "step": "precision_preflight",
                        "result": "Base " + str(precision_context["base_sha"])[:12]
                        + "; caminhos candidatos, nao causa confirmada; sem chamadas extra de IA"}]
+            claude_plan = None
             if job["provider"] in {"claude", "joint"}:
                 plan = cli("claude", "Prepare um plano com critérios de aceite. NÃO altere arquivos.\n\n" + precision_prompt, worktree)
-                stages.append({"role": "claude", "step": "plan", "result": plan["output"][-4000:]})
+                claude_plan = plan["output"][-4000:]
+                stages.append({"role": "claude", "step": "plan", "result": claude_plan})
             if job["provider"] in {"codex", "joint"}:
                 first = "Realize a tarefa apenas neste worktree. Não faça push, merge, deploy nem toque em credenciais.\n\n" + precision_prompt
-                if stages:
-                    first += "\n\nPlanejamento inicial de Claude:\n" + stages[0]["result"]
+                if claude_plan is not None:
+                    first += "\n\nPlanejamento inicial de Claude:\n" + claude_plan
                 code = cli("codex", first, worktree)
                 stages.append({"role": "codex", "step": "implement", "result": code["output"][-4000:]})
             # Include new files in the patch without staging their contents as commits.
@@ -255,6 +257,11 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
                 quality["precision_preflight"] = "read_only_completed"
                 quality["precision_base_sha"] = str(precision_context["base_sha"])
                 quality["precision_note"] = "Preflight paths only; business tests and root cause still need independent proof."
+                # Syntax/diff checks do not constitute functional acceptance.
+                quality["delivery_readiness"] = (
+                    "requires_functional_tests_and_review" if quality.get("tests") == "not_run"
+                    else "requires_independent_review"
+                )
             except (QualityError, MissionQualityExhausted) as exc:
                 raise GatewayError("Quality gate bloqueou entrega após correções; patch local preservado: " + str(exc)) from exc
             if job["provider"] == "joint":
