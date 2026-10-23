@@ -76,8 +76,8 @@ class PrecisionPreflightTests(unittest.TestCase):
                     "def sincronizar():\n    return 2\n")
                 return {"output": "patch pronto", "ok": True}
 
-            with mock.patch("gateway.engine.pathlib.Path.home", return_value=home), \\
-                 mock.patch("gateway.engine.billing_keys_present", return_value=[]):
+            with (mock.patch("gateway.engine.pathlib.Path.home", return_value=home),
+                  mock.patch("gateway.engine.billing_keys_present", return_value=[])):
                 result = execute_job(
                     {"projects": {"testing": str(repo)}, "allow_execution": True},
                     {"project": "testing", "provider": "codex", "type": "code",
