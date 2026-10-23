@@ -34,6 +34,10 @@ resume a repaired worktree across worker crashes, or deploy code. The existing
 job queue and heartbeat still handle worker assignment, not full mission
 continuation.
 
+## Correção do modo conjunto e conclusão por evidência (23/10/2026)
+
+O preflight ocupa a primeira posição dos stages; **não é** o plano do Claude. A execução `joint` usa agora a variável `claude_plan` para passar o plano verdadeiro ao Codex, evitando que o desenvolvedor perca orientações de critérios de aceite. O resultado do Quality Gate permanece estrutural (sintaxe/diff) e informa explicitamente `delivery_readiness=requires_functional_tests_and_review` enquanto os testes funcionais não são executados. A pessoa ou agente autorizado deve observar testes, revisar diff/tenants/efeitos e validar integração antes de merge/deploy. Sem chamadas de modelo extras; um revisor no modo conjunto já era parte do fluxo.
+
 ## Precision Engineering integration — phase 1
 
 The gateway runs `inspect_before_code(worktree, goal)` **before any provider CLI**. The read-only adapter collects the local Git SHA, limited filenames and project instruction paths. Its output becomes a research-first instruction in the same Codex/Claude call already used by the task; no additional AI model calls, dependency, paid service, Vercel Preview, or CI activation. The delivery receipt exposes `precision_preflight: read_only_completed` and `precision_base_sha`.
