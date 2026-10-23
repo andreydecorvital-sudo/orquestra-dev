@@ -34,6 +34,14 @@ resume a repaired worktree across worker crashes, or deploy code. The existing
 job queue and heartbeat still handle worker assignment, not full mission
 continuation.
 
+## Precision Engineering integration — phase 1
+
+The gateway runs `inspect_before_code(worktree, goal)` **before any provider CLI**. The read-only adapter collects the local Git SHA, limited filenames and project instruction paths. Its output becomes a research-first instruction in the same Codex/Claude call already used by the task; no additional AI model calls, dependency, paid service, Vercel Preview, or CI activation. The delivery receipt exposes `precision_preflight: read_only_completed` and `precision_base_sha`.
+
+**This does not prove that the AI found the real root cause or ran any behavior test.** It is a first-stage quality improvement, not a full Origin preflight proof. The Origin `precision-engineering` skill separately defines a stricter evidence-backed contract; enforce it only after trusted host verification of real logs, SHA, acceptance criteria, and tests is integrated.
+
+Validation: `python -m unittest tests.test_precision -v`. Preserve the previous project-specific gates. No automatic merge, deploy, DB write or paid model fallback. For measurable outcomes, record first-pass accepted deliveries, number of repairs, and regressions after release (not an invented improvement percentage).
+
 ## Follow-on milestones
 
 1. Persist goals, acceptance criteria, checkpoints and per-cycle evidence in
