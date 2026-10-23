@@ -19,6 +19,7 @@ from typing import Any
 from orchestration.quality import QualityError, inspect_worktree
 from orchestration.mission_loop import MissionQualityExhausted, repair_failed_quality
 from orchestration.autonomy import decide_action
+from orchestration.precision import PrecisionError, inspect_before_code, precision_instructions
 
 API_ENV = {
     "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CODEX_API_KEY",
@@ -150,13 +151,22 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
                                      isolated_environment=worktree.is_dir())
             if not decision.may_execute:
                 raise GatewayError("Política de autonomia bloqueou edição isolada")
+            # Read-only Origin precision stage. No extra provider call or new paid runner.
+            # The hints are ONLY filenames; the implementing agent must prove any root cause.
+            try:
+                precision_context = inspect_before_code(worktree, job["prompt"])
+                precision_prompt = precision_instructions(job["prompt"], precision_context)
+            except PrecisionError as exc:
+                raise GatewayError("Precision preflight bloqueou implementacao: " + str(exc)) from exc
             # No automatic push/merge/deploy; detached worktree is preserved only as a patch.
-            stages = []
+            stages = [{"role": "support", "step": "precision_preflight",
+                       "result": "Base " + str(precision_context["base_sha"])[:12]
+                       + "; caminhos candidatos, nao causa confirmada; sem chamadas extra de IA"}]
             if job["provider"] in {"claude", "joint"}:
-                plan = cli("claude", "Prepare um plano com critérios de aceite. NÃO altere arquivos.\n\n" + job["prompt"], worktree)
+                plan = cli("claude", "Prepare um plano com critérios de aceite. NÃO altere arquivos.\n\n" + precision_prompt, worktree)
                 stages.append({"role": "claude", "step": "plan", "result": plan["output"][-4000:]})
             if job["provider"] in {"codex", "joint"}:
-                first = "Realize a tarefa apenas neste worktree. Não faça push, merge, deploy nem toque em credenciais.\n\n" + job["prompt"]
+                first = "Realize a tarefa apenas neste worktree. Não faça push, merge, deploy nem toque em credenciais.\n\n" + precision_prompt
                 if stages:
                     first += "\n\nPlanejamento inicial de Claude:\n" + stages[0]["result"]
                 code = cli("codex", first, worktree)
@@ -242,6 +252,9 @@ def execute_job(cfg: dict[str, Any], payload: dict[str, Any], *, cli=run_cli) ->
                                                capture_output=True, text=True, timeout=20, shell=False)
                     changed = refreshed
                 quality["autonomous_repairs"] = verification["repairs"]
+                quality["precision_preflight"] = "read_only_completed"
+                quality["precision_base_sha"] = str(precision_context["base_sha"])
+                quality["precision_note"] = "Preflight paths only; business tests and root cause still need independent proof."
             except (QualityError, MissionQualityExhausted) as exc:
                 raise GatewayError("Quality gate bloqueou entrega após correções; patch local preservado: " + str(exc)) from exc
             if job["provider"] == "joint":

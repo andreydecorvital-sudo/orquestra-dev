@@ -64,6 +64,12 @@ python -m runner.agent_worker
 
 O arquivo local `runner/agent-worker.json` deve estar presente (ignorado no Git). Use o exemplo. O worker faz apenas conexões HTTPS **de saída**, sem abrir servidor no notebook. Quando o login de uma CLI não está pronto, ele não anuncia capacidade para receber tarefas daquele modelo. O gateway HTTP local anterior (`gateway/server.py`) continua opcional e **nunca** deve ser publicado na internet.
 
+## Menos retrabalho: Precision Engineering
+
+O executor possui uma etapa local **somente de leitura** antes da primeira chamada do Codex/Claude: identifica SHA, regras do repositório e arquivos candidatos. O agente recebe uma instrução para investigar causa e proprietário real, escrever um plano mínimo e testar antes de finalizar. Não usa chamada adicional de IA nem altera a Argoplace por si só.
+
+Código: `orchestration/precision.py` + integração em `gateway/engine.py`, testes `tests/test_precision.py`. A skill mais completa está no repositório separado Origin (`skills/precision-engineering/SKILL.md`). Caminhos candidatos não são diagnóstico, e as verificações atuais continuam **sem testes funcionais completos automaticamente**.
+
 ## Testes
 
 ```bash
