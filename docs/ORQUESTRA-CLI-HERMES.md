@@ -1,0 +1,143 @@
+# ORQUESTRA CLI · Hermes Kanban com Codex (piloto local)
+
+## Abrir com dois cliques no Windows (recomendado)
+
+**Sem copiar comandos:** baixe o ZIP da branch experimental em
+https://github.com/andreydecorvital-sudo/orquestra-dev/archive/refs/heads/feat/hermes-kanban-orquestra-cli-20261015.zip
+e escolha **Extrair tudo** no Windows. Dentro da pasta extraida, abra **`ABRIR-ORQUESTRA.cmd`** com dois cliques.
+
+O menu apresenta **Configurar instalacao**, **Conectar contas**, **Iniciar motor**, **Nova missao**, **Acompanhar tarefas / Kanban** e **Diagnostico**. O instalador guiado abre as paginas oficiais de downloads ausentes, pergunta antes de instalar Codex/Gemini por npm e antes de clonar os repositorios privados. Nao solicita senha, token nem chave de API e nao modifica configuracoes de sistema permanentemente. Precisa concluir manualmente o login nos provedores oficiais na primeira vez.
+
+Os projetos sao procurados ao lado da pasta Orquestra se ja existirem; caso contrario, em `%USERPROFILE%\Projetos`. Um caminho explicito `ORQUESTRA_PROJECTS_HOME` e respeitado. A operacao do console nao depende de Vercel/Supabase.
+
+## Atualizacao automatica da Orquestra
+
+O `ABRIR-ORQUESTRA.cmd` consulta o canal experimental deste repositorio no GitHub sempre que a Orquestra inicia. Se houver um commit novo, baixa o pacote por HTTPS, valida a estrutura, atualiza os arquivos do app e registra o commit instalado. **Nao precisa baixar outro ZIP a cada mudanca minha**: depois de instalar uma vez esta versao com o atualizador, as proximas alteracoes publicadas neste canal chegam no proximo inicio da Orquestra.
+
+- Atualiza somente arquivos presentes no pacote do repositorio; nao apaga arquivos locais desconhecidos.
+- Preserva `.env`, configuracoes locais de worker, arquivos de configuracao ignorados pelo Git, pastas de dados/projetos/logs e logs de execucao.
+- Se o download, a validacao ou a copia falhar, mantem os arquivos existentes e permite abrir o menu. O log tecnico fica em `%LOCALAPPDATA%\Orquestra\logs\updater.log`.
+- O menu tambem tem **8 - Verificar/instalar atualizacoes**, que reinicia a Orquestra quando aplica uma versao nova.
+- O atualizador nao exige token do GitHub nem instala dependencias automaticamente.
+
+**Primeira instalacao:** como a pasta ja instalada ainda nao contem o atualizador, baixe e extraia o ZIP atualizado uma ultima vez, em uma pasta nova, e passe a abrir sempre o `ABRIR-ORQUESTRA.cmd` dessa pasta. Depois disso, a verificacao ocorre sozinha em cada abertura.
+
+**Canal atual:** branch experimental `feat/hermes-kanban-orquestra-cli-20261015`, nao a `main`. Assim, as mudancas que eu fizer nesse canal podem chegar automaticamente sem esperar merge. Isso tambem significa que este canal e de piloto; atualizacoes sao aplicadas automaticamente no proximo inicio. Nao ha alteracoes remotas no seu PC enquanto a Orquestra estiver fechada, e o atualizador nao reinicia sessoes ja abertas.
+
+
+Use **Iniciar motor Hermes** antes de enviar missoes e mantenha a janela do gateway aberta. O menu abre **hermes dashboard** para consultar o Kanban visual no navegador local. Evite iniciar dois gateways ao mesmo tempo.
+
+> Este e um piloto; os testes de sintaxe no Windows e o CI nao validam os logins reais nem garantem que os trabalhadores concluam tarefas. Todas as missoes geradas sao investigacoes; nenhuma acao em producao e autorizada.
+
+Este iniciador **não substitui** a fila Supabase anterior nem libera qualquer produção. É um modo adicional que usa o dispatcher nativo do Hermes e não necessita de Vercel/Supabase para criar tarefas na máquina local.
+
+## Login por codigo: corrigido quando Opera abre sem codigo
+
+Se o Opera exibir **"Use o seu codigo do aparelho"** mas nenhum codigo apareceu, nao aguarde: o fluxo anterior abria a pagina antes de gerar o codigo, deixando o usuario sem o que informar.
+
+A versao corrigida faz:
+
+1. Menu **2 Conectar contas** > **1 ChatGPT/Codex no Opera**, ou **3 Hermes Nagi no Opera**.
+2. Abre uma **NOVA janela preta CMD** com o comando oficial `codex login --device-auth` ou `hermes -p nagi auth add openai-codex --type oauth`.
+3. **Aguarde o codigo de 9 caracteres na nova janela.** Se nao aparecer, a janela mantem a mensagem de erro visivel. Nao compartilhe codigos de login.
+4. Volte ao menu da Orquestra: responda **S** a "O codigo apareceu?" SOMENTE quando estiver visivel. A Orquestra entao abre a pagina oficial no Opera para inserir o codigo.
+5. Autorize no Opera e confira na janela CMD se houve confirmacao. Se nao houver codigo, responda **N** e envie apenas o texto do erro (oculte tokens).
+
+**Importante:** existem logins diferentes para Codex CLI e Hermes; se ambos precisarem de autorizacao, cada um gera seu proprio codigo. Nao se usa o codigo de uma sessao na outra. O login depende de habilitacao do recurso de codigo de dispositivo na sua conta.
+
+## Login ChatGPT exclusivamente no Opera (Windows)
+
+O menu **2 - Conectar contas** oferece as opcoes:
+- **1: ChatGPT no Codex (Opera)** — inicia o login oficial `codex login --device-auth` e abre **https://auth.openai.com/codex/device** diretamente no Opera, sem acionar o browser padrao.
+- **3: Hermes Nagi com ChatGPT (Opera)** — configura `auth.codex_login_flow=device_code` no perfil `nagi`, abre a mesma pagina no Opera e executa `hermes -p nagi auth add openai-codex --type oauth` para receber codigo de uso unico.
+
+O Opera e localizado nos caminhos padrao do **Opera / Opera GX**. Se nao for encontrado, surge um seletor de arquivos para `opera.exe` ou `launcher.exe`, salvando a escolha localmente em `%LOCALAPPDATA%\\Orquestra\\opera-path.txt`. Para instalacoes portateis, tambem pode ser definida a variavel `ORQUESTRA_OPERA_PATH`. **Nao altera o navegador padrao nem instala extensao de navegador.**
+
+O usuario deve concluir o login, inserir o **codigo temporario no Opera** e manter a janela da Orquestra aberta. O codigo so aparece no console local, nao e copiado para o repositorio, cloud ou logs. O login por codigo precisa estar habilitado nas **configuracoes de seguranca da conta ChatGPT**; se desabilitado, a Orquestra mostra falha sem abrir Chrome. No menu Gemini, mantem-se a autenticacao independente da Google.
+
+> O suporte por codigo de dispositivo depende do provedor, conta, rede e versao das CLIs; testes do GitHub Actions usam mocks e nao acessam as contas reais.
+
+## Corrigido após primeiro piloto no Windows
+
+- O menu de nova missão e status agora encaminha corretamente múltiplos argumentos ao Python.
+- O atalho inicia o gateway com `hermes gateway start`, conforme a documentação oficial.
+- A opção **7 - Salvar relatorio de erros** grava um `diagnostico.txt` em `%LOCALAPPDATA%\\Orquestra\\logs` e pode abri-lo no Bloco de Notas. O relatório inclui apenas presença de ferramentas e códigos de saída: não copie senhas, tokens ou dados de compradores para o diagnóstico.
+- O próprio iniciador registra eventos sanitizados em `status.log` local. Não registra prompts de tarefas nem credenciais.
+- A rotina `-SelfTest` executada pelo GitHub Actions no Windows verifica encaminhamento de tarefa e consulta de status; testes de CI não validam contas e ferramentas instaladas no PC real.
+
+**Se o lançador antigo deu erro:** extraia a **versão atualizada completa do ZIP** em outra pasta, não misture arquivos de versões anteriores, abra `ABRIR-ORQUESTRA.cmd` com dois cliques, e use a opção **7** se houver novo erro.
+
+## Pré-requisitos
+
+- Windows CMD, Python 3.10+, Git, Hermes Agent atualizado, Codex CLI oficial **e Gemini CLI opcional para o comando `equipe`**. Instale Gemini CLI com `npm install -g @google/gemini-cli` e execute `gemini` → **Sign in with Google**. Sem chave Gemini/Google API paga.
+- Repositórios irmãos da pasta `orquestra-dev`: `origin` e `vitalhub`. Opcional: `ORQUESTRA_PROJECTS_HOME` apontando para a pasta que contém ambos.
+- Autenticação local `codex login`, Hermes com perfil `nagi` no provedor **ChatGPT or Codex Subscription**. Não configure APIs pagas ou fallbacks inesperados.
+- Dentro de `hermes -p nagi --tui`, use `/codex-runtime codex_app_server` e reinicie a sessão para ativar o runtime. Validar o resultado real antes de despachar.
+- O perfil deve ter permissões restritas; um prompt não substitui sandbox. Codex workers são sandboxed quando corretamente configurados; verifique as permissões do seu runtime.
+
+## CMD 1 — preparar
+
+```cmd
+cd /d "%USERPROFILE%\Projetos\orquestra-dev"
+ORQUESTRA.cmd doctor
+ORQUESTRA.cmd preparar
+hermes -p nagi model
+hermes -p nagi --tui
+```
+
+Dentro do Hermes, digite `/codex-runtime codex_app_server`, encerre e reabra a sessão. Termine `codex login` se ainda não estiver autenticado. Para primeiro teste, execute um chat curto como Nagi.
+
+## CMD 2 — iniciar o despachante
+
+```cmd
+ORQUESTRA.cmd gateway
+```
+
+**Este CMD deve permanecer aberto.** O gateway inclui o dispatcher Kanban. Apenas criar perfis e quadros não inicia tarefa nenhuma.
+
+## CMD 3 — tarefas e acompanhamento
+
+```cmd
+ORQUESTRA.cmd teste
+ORQUESTRA.cmd acompanhar origin
+ORQUESTRA.cmd equipe argoplace "Investigar por que etiquetas Shopee ficam bloqueadas"
+ORQUESTRA.cmd acompanhar argoplace
+ORQUESTRA.cmd status origin
+```
+
+O teste usa workspace scratch, não um repositório. Acompanhe até a tarefa estar `done`, `review` ou `blocked`; veja detalhes com `hermes kanban --board origin list`, `show <ID>`, `runs <ID>` ou `log <ID>`. Se ficar eternamente `ready`, confira `hermes gateway status`, login do perfil e `hermes kanban --board origin diagnostics`.
+
+Depois do teste, crie um diagnóstico em worktree **isolado**, sem alterar seu checkout da main:
+
+```cmd
+ORQUESTRA.cmd investigar argoplace "Examinar origem dos erros na expedição e recomendar testes"
+ORQUESTRA.cmd acompanhar argoplace
+ORQUESTRA.cmd investigar origin "Mapear skills de filas que podem ajudar a Argoplace"
+```
+
+Worktrees isolados ficam em `%LOCALAPPDATA%\Orquestra\worktrees` e **não são removidos automaticamente**. Nenhum push, PR, deploy ou merge é executado pelo iniciador. O agente poderá usar ferramentas locais conforme a configuração real do perfil; mantenha permissões mínimas, não dê credenciais de produção e revise resultados.
+
+## Gemini + Codex sem Claude
+
+- `ORQUESTRA.cmd equipe argoplace "TAREFA"` chama primeiro Gemini CLI com `--approval-mode plan` em pasta temporária, enviando só regras de projeto (AGENTS.md, e START_HERE.md no Origin) e a instrução. Retorna um plano e cria um card Hermes para o Nagi via login ChatGPT.
+- Gemini CLI precisa de login Google já feito em sessão interativa `gemini`. A automação **não** usa `GEMINI_API_KEY`, `GOOGLE_API_KEY`, fallback de API paga, nem envia credenciais para Supabase.
+- Ao atingir limite ou falhar no login do Gemini, a automação para; não consome a franquia GPT silenciosamente.
+- Gemini opera em modo plan e diretório temporário, mas **isso não é isolamento de sistema operacional**; mantenha a execução restrita a máquina e projetos de confiança. O Gemini não recebe o diretório de código; Nagi só usa uma cópia Git separada.
+- Claude continua desativado na CLI nova. **Grok Bot** é um produto de agentes com computador em nuvem e uso próprio; sua assinatura não garante automaticamente que o mesmo login funcione no Hermes. Se sua conta xAI também for elegível para o OAuth do Grok via Hermes, teste `hermes auth add xai-oauth` em perfil separado e a resposta real antes de integrá-lo. Não use `XAI_API_KEY` nem fallback pago sem autorização.
+
+## Limitações atuais
+
+- Nagi é um perfil Hermes cujo runtime pode usar Codex. Outros perfis ainda não estão configurados nem autorizados pelo iniciador.
+- Não configura Claude e não transforma assinatura ChatGPT em API para os clientes da Argoplace.
+- A primeira cadeia é Gemini (planejamento) → Hermes Kanban → Nagi/Codex (investigação); revisão posterior automática depende de validar os agentes e de acrescentar novos cartões de handoff.
+- `doctor` valida comandos e pastas, **não garante** inferência, limites da assinatura ou gateway ativo.
+- Hermes Kanban usa SQLite local e dispatcher local (não uma fila multi-servidor). Para executar tarefas com PC desligado é necessário um executor autorizado em máquina ligada.
+
+## Referências
+
+- https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban
+- https://hermes-agent.nousresearch.com/docs/user-guide/features/codex-app-server-runtime
+- https://geminicli.com/docs/get-started/authentication/
+- https://geminicli.com/docs/cli/headless/
+- https://hermes-agent.nousresearch.com/docs/guides/xai-grok-oauth/
+- https://docs.x.ai/grok-bot/overview

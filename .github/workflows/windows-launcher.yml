@@ -1,0 +1,66 @@
+name: Windows launcher smoke
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  parse-windows-launcher:
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Parse PowerShell syntax without running installers
+        shell: powershell
+        run: |
+          $tokens = $null
+          $errors = $null
+          $path = Join-Path $env:GITHUB_WORKSPACE 'launcher\OrquestraMenu.ps1'
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors)
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          $operaTokens = $null
+          $operaErrors = $null
+          $operaScript = Join-Path $env:GITHUB_WORKSPACE 'launcher\OperaLogin.ps1'
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($operaScript, [ref]$operaTokens, [ref]$operaErrors)
+          if ($operaErrors.Count -gt 0) {
+            $operaErrors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          $updaterTokens = $null
+          $updaterErrors = $null
+          $updaterScript = Join-Path $env:GITHUB_WORKSPACE 'launcher\OrquestraUpdater.ps1'
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($updaterScript, [ref]$updaterTokens, [ref]$updaterErrors)
+          if ($updaterErrors.Count -gt 0) {
+            $updaterErrors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          Write-Host 'Launcher, Opera login and updater PowerShell syntax valid'
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/OrquestraUpdater.ps1 -SelfTest
+      - name: Execute real PowerShell mission-forwarding self-test
+        shell: powershell
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File launcher/OrquestraMenu.ps1 -SelfTest
+      - name: Validate Opera-only ChatGPT device auth contract
+        shell: powershell
+        run: |
+          $login = Get-Content launcher/OperaLogin.ps1 -Raw
+          $menu = Get-Content launcher/OrquestraMenu.ps1 -Raw
+          $codex = Get-Content launcher/LOGIN-CODEX.cmd -Raw
+          $hermes = Get-Content launcher/LOGIN-HERMES.cmd -Raw
+          if ($codex -notmatch 'codex login --device-auth') { throw 'Codex device auth command missing from terminal' }
+          if ($hermes -notmatch 'hermes -p nagi auth add openai-codex --type oauth') { throw 'Hermes device auth command missing from terminal' }
+          if ($login -notmatch 'Start-DeviceLoginConsole') { throw 'Real interactive terminal not launched first' }
+          if ($login -notmatch 'Prompt-AfterCode') { throw 'Missing code confirmation gate before Opera opens' }
+          if ($login -notmatch 'Start-Process -FilePath \$operaExe') { throw 'Opera launcher missing' }
+          if ($login -notmatch 'auth.codex_login_flow device_code') { throw 'Hermes forced device flow missing' }
+          if ($menu -notmatch 'Login-CodexOpera' -or $menu -notmatch 'Login-HermesOpera') { throw 'Login menu is not connected to Opera' }
+      - name: Verify batch wrapper references menu
+        shell: powershell
+        run: |
+          $launcher = Get-Content ABRIR-ORQUESTRA.cmd -Raw
+          if ($launcher -notmatch 'launcher\\OrquestraUpdater.ps1') { throw 'Auto updater missing from double click entrypoint' }
+          if ($launcher -notmatch 'OrquestraUpdater.ps1.*-Quiet') { throw 'Automatic update check must run quietly before menu' }
+          if ($launcher -notmatch 'launcher\\OrquestraMenu.ps1') { throw 'Menu missing from double click entrypoint' }
+      - name: Verify Python CLI syntax
+        run: python -m compileall -q cli

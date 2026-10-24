@@ -1,12 +1,12 @@
 # Orquestra Dev — Instructions for AI Agents
 
-Follow the Orquestra's own router and only official, subscription-authenticated CLIs.
+Follow the Orquestra's own router and only official, account-authenticated CLIs. Default piloto: ChatGPT/Codex + Gemini CLI Google login; Grokbot apenas após checar as permissões do plano.
 
 ## Roles and quality
 
 - **Lelouch**: identity of the planning/coordination role, not an extra model or permission.
 - **Nagi**: identity of the implementation role; GPT/Codex normally writes code.
-- **Claude Code**: leads design/UX specification and independent code review.
+- **Gemini CLI**: planejamento, design e revisão textual via login Google. Claude Code fica inativo neste piloto; nenhum fallback automático para ele.
 - **Support**: documentation, investigation, evidence and deterministic checks; no deployment authority.
 
 ## Produto: qualidade comprovada antes de velocidade (23/10/2026)
