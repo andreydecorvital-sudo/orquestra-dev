@@ -137,11 +137,8 @@ def advertised_capabilities(config:dict[str,Any])->list[str]:
     return caps
 
 
-def main()->None:
-    path=pathlib.Path(os.environ.get("ORQ_AGENT_WORKER_CONFIG",ROOT/"runner"/"agent-worker.json"))
-    if not path.is_file():
-        raise SystemExit("Configure runner/agent-worker.json a partir do exemplo (não comitar)")
-    config=load_config(path)
+def run_worker(config:dict[str,Any])->None:
+    """Run an already validated trusted worker config, including cloud diagnostics."""
     interval=max(15,min(120,int(config.get("poll_seconds",25))))
     print("Orquestra v1.0: executor em outbound HTTPS, subscription only")
     next_capability_sync=0.0
@@ -179,6 +176,14 @@ def main()->None:
         except Exception as error:
             print("Backend indisponível:",type(error).__name__)
             time.sleep(interval)
+
+
+def main()->None:
+    path=pathlib.Path(os.environ.get("ORQ_AGENT_WORKER_CONFIG",ROOT/"runner"/"agent-worker.json"))
+    if not path.is_file():
+        raise SystemExit("Configure runner/agent-worker.json a partir do exemplo (não comitar)")
+    config=load_config(path)
+    run_worker(config)
 
 
 if __name__=="__main__":

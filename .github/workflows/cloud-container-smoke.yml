@@ -1,0 +1,52 @@
+name: Orquestra cloud diagnostic container smoke
+on:
+  pull_request:
+    paths:
+      - 'cloud/**'
+      - 'runner/agent_worker.py'
+      - 'gateway/**'
+      - '.github/workflows/cloud-container-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'cloud/**'
+      - 'runner/agent_worker.py'
+      - 'gateway/**'
+      - '.github/workflows/cloud-container-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  cloud-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Build non-root diagnostic container
+        run: docker build -f cloud/Dockerfile -t orquestra-cloud-smoke:ci .
+      - name: Hermes must remain absent and no auth should start
+        run: |
+          docker run --rm --entrypoint python orquestra-cloud-smoke:ci -m cloud.hermes_smoke > hermes-status.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          status = json.loads(Path('hermes-status.json').read_text())
+          assert status['status'] == 'hermes_not_installed', status['status']
+          assert status['mode'] == 'read_only'
+          assert not status['oauth_login_initiated']
+          assert not status['inference_tested']
+          assert not status['tokens_exposed']
+          print('Hermes smoke: not installed, OAuth not attempted, inference disabled.')
+          PY
+      - name: Container must refuse to start without dedicated backend credentials
+        run: |
+          set +e
+          docker run --rm orquestra-cloud-smoke:ci > startup.log 2>&1
+          exit_code=$?
+          set -e
+          test "$exit_code" -eq 1
+          grep -q 'ORQUESTRA_CLOUD_PILOT_BLOCKED' startup.log
+          if grep -Eq 'node_secret|auth\.json|BEGIN .*PRIVATE KEY' startup.log; then
+            echo 'Unexpected sensitive output detected'
+            exit 1
+          fi
+          echo 'Cloud diagnostic container correctly fails closed before fetching or polling.'

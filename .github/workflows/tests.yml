@@ -40,6 +40,30 @@ jobs:
           cmp "$unpacked/content.js" browser-bridge/content.js
       - name: Hermes bridge is pure-Python
         run: python3 -m py_compile gateway/hermes_bridge.py
+      - name: Build cloud diagnostic Docker image (when present)
+        if: ${{ hashFiles('cloud/Dockerfile') != '' }}
+        run: docker build -f cloud/Dockerfile -t orquestra-cloud-smoke:ci .
+      - name: Validate Hermes readiness and cloud start fail-closed
+        if: ${{ hashFiles('cloud/Dockerfile') != '' }}
+        run: |
+          docker run --rm --entrypoint python orquestra-cloud-smoke:ci -m cloud.hermes_smoke > hermes-status.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          value = json.loads(Path("hermes-status.json").read_text())
+          assert value['status'] == 'hermes_not_installed', value['status']
+          assert not value['oauth_login_initiated']
+          assert not value['inference_tested']
+          assert not value['tokens_exposed']
+          print('Hermes smoke: blocked without runtime, no login or inference')
+          PY
+          set +e
+          docker run --rm orquestra-cloud-smoke:ci > cloud-startup.log 2>&1
+          exit_code=$?
+          set -e
+          test "$exit_code" -eq 1
+          grep -q 'ORQUESTRA_CLOUD_PILOT_BLOCKED' cloud-startup.log
+          echo 'Cloud diagnostic worker: correctly blocked without backend pairing'
       - name: Block tracked secrets
         run: |
           test ! -f runner/agent-worker.json
