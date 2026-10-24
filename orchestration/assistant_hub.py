@@ -61,6 +61,8 @@ class AssistantPlan:
     blockers: tuple[str, ...]
     approval_required: bool
     executor_authorized: bool = False
+    # Only a request for context, never evidence of GitHub access or inference.
+    knowledge_sources: tuple[str, ...] = ()
 
     @property
     def status(self) -> str:
@@ -110,10 +112,17 @@ def plan_assistance(
             blockers.append("Executor isolado não confirmado")
     if request.action == "external_action":
         blockers.append("Efeito externo requer autorização humana específica")
+    # Origin is a private knowledge repository, not an LLM/provider or a model.
+    # Actual reads require a separate owner-scoped OriginReadGrant and GitHub token.
+    use_origin = request.complex_work or request.intent in {
+        "research", "engineering", "design", "marketing",
+        "commerce", "review", "multidisciplinary",
+    }
     return AssistantPlan(
         mode="conversation" if request.action == "answer" else "work",
         steps=tuple(steps), blockers=tuple(blockers),
         approval_required=request.action == "external_action",
+        knowledge_sources=("origin",) if use_origin else (),
     )
 
 
